@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SVP | ПРИВАТНЫЙ ЧАТ</title>
+    <title>SVP | ЧАТ</title>
     <style>
         * {
             margin: 0;
@@ -399,13 +399,10 @@
         .header {
             padding: 10px 15px;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             flex-shrink: 0;
             transition: all 0.3s ease;
-        }
-        .header h3 {
-            font-size: 16px;
         }
         .user-info {
             display: flex;
@@ -647,8 +644,8 @@
 <div class="auth-screen" id="authScreen">
     <div class="auth-card">
         <h1>💬 SVP</h1>
-        <p>Приватный чат</p>
-        <input type="text" id="authNickname" placeholder="Введите ваш никнейм" maxlength="20">
+        <p>Введите ваш никнейм</p>
+        <input type="text" id="authNickname" placeholder="Никнейм" maxlength="20">
         <button id="authBtn">ВОЙТИ</button>
         <div id="authError" class="error-msg"></div>
     </div>
@@ -656,7 +653,6 @@
 
 <div class="chat" id="mainChat" style="display: none;">
     <div class="header">
-        <h3>💬 SVP | ПРИВАТНЫЙ ЧАТ</h3>
         <div class="user-info">
             <span class="user-name" id="currentUserName">User</span>
         </div>
@@ -693,7 +689,7 @@
             
             <div class="messages-area">
                 <div id="noChatSelected" class="no-chat-selected">
-                    👈 Выберите чат слева<br>или найдите пользователя
+                    👈 Выберите чат или найдите пользователя
                 </div>
                 <div id="messagesContainer" class="messages"></div>
             </div>
@@ -706,7 +702,7 @@
             </div>
         </div>
         
-        <!-- ВКЛАДКА НАСТРОЕК (без "О приложении") -->
+        <!-- ВКЛАДКА НАСТРОЕК -->
         <div class="tab-pane" id="settingsPane">
             <div class="settings-pane">
                 <div class="settings-card">
@@ -1005,7 +1001,10 @@
             settingsPane.classList.remove('active-pane');
             tabChatBtn.classList.add('active');
             tabSettingsBtn.classList.remove('active');
-            if (messageInput) messageInput.focus();
+            // Убираем автоматический фокус с поля ввода при переключении на чаты
+            if (document.activeElement === messageInput) {
+                messageInput.blur();
+            }
         } else {
             settingsPane.classList.add('active-pane');
             chatPane.classList.remove('active-pane');
@@ -1068,7 +1067,8 @@
         noChatSelected.style.display = 'none';
         messagesContainer.classList.add('active');
         inputArea.style.display = 'block';
-        messageInput.focus();
+        // НЕ ставим фокус автоматически, чтобы клавиатура не открывалась сама
+        // messageInput.focus(); - убрано
         
         clearMessages();
         
@@ -1215,7 +1215,8 @@
         };
         
         messageInput.value = '';
-        messageInput.focus();
+        // НЕ ставим фокус автоматически после отправки
+        // messageInput.focus(); - убрано
         
         database.ref('messages/' + chatId).push(message).then((newMsgRef) => {
             const updateData = {
