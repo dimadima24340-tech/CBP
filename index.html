@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SVP | ЧАТ</title>
+    <title>SVP | ЧАТ С КАРТИНКАМИ</title>
     <style>
         * {
             margin: 0;
@@ -154,6 +154,16 @@
         }
         body.theme-dark .auth-card {
             background: #111;
+        }
+        body.theme-dark .image-message {
+            background: #1a1a1a;
+        }
+        body.theme-dark .image-preview {
+            background: #000;
+        }
+        body.theme-dark .stats-card {
+            background: #1a1a1a;
+            border: 1px solid #ff5e00;
         }
 
         /* ========= СВЕТЛАЯ ТЕМА (LIGHT) ========= */
@@ -310,6 +320,16 @@
             border: 1px solid #ddd;
             color: #333;
         }
+        body.theme-light .image-message {
+            background: #f0f0f0;
+        }
+        body.theme-light .image-preview {
+            background: #fff;
+        }
+        body.theme-light .stats-card {
+            background: #ffffff;
+            border: 1px solid #ddd;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', monospace;
@@ -323,7 +343,6 @@
             transition: background 0.3s ease;
         }
 
-        /* ========= ЭКРАН АВТОРИЗАЦИИ ========= */
         .auth-screen {
             position: fixed;
             top: 0;
@@ -623,6 +642,39 @@
             text-align: right;
             margin-top: 3px;
         }
+        
+        .image-message {
+            max-width: 100%;
+            margin-top: 5px;
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .image-preview:hover {
+            transform: scale(1.02);
+        }
+        .fullscreen-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .fullscreen-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
 
         .input-area {
             padding: 8px 10px;
@@ -633,6 +685,7 @@
             display: flex;
             gap: 8px;
             align-items: center;
+            margin-bottom: 8px;
         }
         .input-area input {
             flex: 1;
@@ -653,6 +706,19 @@
         .input-area button:active {
             transform: scale(0.97);
         }
+        
+        .image-upload-btn {
+            background: #ff5e00;
+            color: #000;
+            padding: 10px 15px;
+        }
+        
+        .images-left {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
 
         .status {
             padding: 4px 10px;
@@ -663,7 +729,6 @@
             transition: all 0.3s ease;
         }
 
-        /* ========= НАСТРОЙКИ ========= */
         .settings-pane {
             padding: 20px 16px;
             flex: 1;
@@ -678,7 +743,16 @@
             text-align: center;
             transition: all 0.3s ease;
         }
+        .stats-card {
+            border-radius: 28px;
+            padding: 20px 16px;
+            text-align: center;
+        }
         .settings-card h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .stats-card h3 {
             margin-bottom: 15px;
             font-size: 18px;
         }
@@ -711,12 +785,22 @@
             outline: none;
         }
         
+        .stats-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff5e00;
+        }
+        
         @media (max-width: 500px) {
             .message {
                 max-width: 85%;
             }
             .chats-list {
                 max-height: 120px;
+            }
+            .image-preview {
+                max-width: 150px;
+                max-height: 150px;
             }
         }
     </style>
@@ -726,7 +810,6 @@
 </head>
 <body class="theme-dark">
 
-<!-- ЭКРАН АВТОРИЗАЦИИ (ЛОГИН + ПАРОЛЬ) -->
 <div class="auth-screen" id="authScreen">
     <div class="auth-card">
         <h1>💬 SVP</h1>
@@ -741,7 +824,6 @@
     </div>
 </div>
 
-<!-- ЭКРАН РЕГИСТРАЦИИ -->
 <div class="auth-screen" id="registerScreen" style="display: none;">
     <div class="auth-card">
         <h1>💬 SVP</h1>
@@ -757,7 +839,6 @@
     </div>
 </div>
 
-<!-- ОСНОВНОЙ ЧАТ -->
 <div class="chat" id="mainChat" style="display: none;">
     <div class="header">
         <div class="user-info">
@@ -769,14 +850,12 @@
         <span>🔌 подключение...</span>
     </div>
     
-    <!-- ВКЛАДКИ -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="chat" id="tabChatBtn">💬 ЧАТЫ</button>
         <button class="tab-btn" data-tab="settings" id="tabSettingsBtn">⚙️ НАСТРОЙКИ</button>
     </div>
 
     <div class="tab-content">
-        <!-- ВКЛАДКА ЧАТОВ -->
         <div class="tab-pane active-pane" id="chatPane">
             <div class="search-area">
                 <div class="search-row">
@@ -805,13 +884,20 @@
                 <div class="input-row">
                     <input type="text" id="messageInput" placeholder="Сообщение...">
                     <button id="sendBtn">➤</button>
+                    <button id="imageUploadBtn" class="image-upload-btn">🖼️</button>
                 </div>
+                <div class="images-left" id="imagesLeft"></div>
             </div>
         </div>
         
-        <!-- ВКЛАДКА НАСТРОЕК -->
         <div class="tab-pane" id="settingsPane">
             <div class="settings-pane">
+                <div class="stats-card" id="statsCard">
+                    <h3>📊 СТАТИСТИКА КАРТИНОК</h3>
+                    <div class="stats-text" id="imagesUsedToday">0/4</div>
+                    <div style="font-size: 12px; margin-top: 5px;">картинок отправлено сегодня</div>
+                </div>
+                
                 <div class="settings-card">
                     <h3>👤 СМЕНИТЬ НИКНЕЙМ</h3>
                     <input type="text" id="newNicknameInput" class="nickname-input" placeholder="Новый никнейм" maxlength="20">
@@ -848,7 +934,6 @@
 </div>
 
 <script>
-    // ========== FIREBASE КОНФИГ (ЗАМЕНИТЕ НА СВОИ ДАННЫЕ) ==========
     const firebaseConfig = {
     apiKey: "AIzaSyBRtSfBYUd5PHRjwnmhb5Mrj67F7KOKr1M",
     authDomain: "noco-83ff7.firebaseapp.com",
@@ -868,7 +953,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
     let currentUser = null;
     let currentChatWith = null;
     let currentMessagesRef = null;
@@ -876,11 +960,10 @@
     let currentChatsListener = null;
     let messageElementsMap = new Map();
     let isInitialLoad = true;
-    
-    // ТЕМА
     let currentTheme = localStorage.getItem('svpTheme') || 'dark';
     
-    // Элементы DOM для авторизации
+    const MAX_IMAGES_PER_DAY = 4;
+    
     const authScreen = document.getElementById('authScreen');
     const registerScreen = document.getElementById('registerScreen');
     const loginUsername = document.getElementById('loginUsername');
@@ -895,7 +978,6 @@
     const authMessage = document.getElementById('authMessage');
     const regMessage = document.getElementById('regMessage');
     
-    // Элементы DOM для чата
     const mainChat = document.getElementById('mainChat');
     const userNameText = document.getElementById('userNameText');
     const statusSpan = document.getElementById('status');
@@ -910,6 +992,9 @@
     const inputArea = document.getElementById('inputArea');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
+    const imageUploadBtn = document.getElementById('imageUploadBtn');
+    const imagesLeftSpan = document.getElementById('imagesLeft');
+    const imagesUsedTodaySpan = document.getElementById('imagesUsedToday');
     const tabChatBtn = document.getElementById('tabChatBtn');
     const tabSettingsBtn = document.getElementById('tabSettingsBtn');
     const chatPane = document.getElementById('chatPane');
@@ -923,7 +1008,6 @@
     const changePasswordBtn = document.getElementById('changePasswordBtn');
     const newPasswordInput = document.getElementById('newPasswordInput');
     
-    // ========== ФУНКЦИИ ТЕМЫ ==========
     function applyTheme(theme) {
         document.body.classList.remove('theme-dark', 'theme-light');
         document.body.classList.add(`theme-${theme}`);
@@ -950,7 +1034,6 @@
         themeSettingsBtn.onclick = toggleTheme;
     }
     
-    // ========== ФУНКЦИЯ ХЕШИРОВАНИЯ ПАРОЛЯ (простая, для демо) ==========
     function hashPassword(password) {
         let hash = 0;
         for (let i = 0; i < password.length; i++) {
@@ -961,7 +1044,226 @@
         return hash.toString();
     }
     
-    // ========== РЕГИСТРАЦИЯ ==========
+    function getTodayKey() {
+        const now = new Date();
+        return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    }
+    
+    // ПРОСТАЯ И НАДЁЖНАЯ ФУНКЦИЯ ДЛЯ ПРОВЕРКИ ЛИМИТА
+    async function checkImageLimit() {
+        if (!currentUser) return false;
+        
+        const todayKey = getTodayKey();
+        const imageCountRef = database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`);
+        const snapshot = await imageCountRef.once('value');
+        const count = snapshot.val() || 0;
+        
+        console.log(`📊 Текущий счётчик: ${count}/${MAX_IMAGES_PER_DAY}`);
+        
+        if (count >= MAX_IMAGES_PER_DAY) {
+            statusSpan.innerHTML = `⚠️ Лимит ${MAX_IMAGES_PER_DAY} картинок в день исчерпан!`;
+            setTimeout(() => {
+                if (currentUser) statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname;
+            }, 3000);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // ПРОСТАЯ ФУНКЦИЯ ДЛЯ УВЕЛИЧЕНИЯ СЧЁТЧИКА
+    async function incrementImageCounter() {
+        if (!currentUser) return false;
+        
+        const todayKey = getTodayKey();
+        const imageCountRef = database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`);
+        
+        try {
+            // Используем транзакцию для атомарного увеличения
+            let success = false;
+            let finalCount = 0;
+            
+            await imageCountRef.transaction((currentValue) => {
+                const newCount = (currentValue || 0) + 1;
+                if ((currentValue || 0) >= MAX_IMAGES_PER_DAY) {
+                    // Не увеличиваем, если лимит достигнут
+                    return;
+                }
+                finalCount = newCount;
+                success = true;
+                return newCount;
+            });
+            
+            if (success) {
+                console.log(`✅ Счётчик увеличен до: ${finalCount}`);
+                await updateImageCountDisplay();
+                return true;
+            } else {
+                console.log(`❌ Лимит достигнут, счётчик не увеличен`);
+                return false;
+            }
+        } catch (error) {
+            console.error('Ошибка при увеличении счётчика:', error);
+            return false;
+        }
+    }
+    
+    // ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ СЧЁТЧИКА
+    async function updateImageCountDisplay() {
+        if (!currentUser) return 0;
+        
+        const todayKey = getTodayKey();
+        const imageCountRef = database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`);
+        const snapshot = await imageCountRef.once('value');
+        const count = snapshot.val() || 0;
+        const remaining = MAX_IMAGES_PER_DAY - count;
+        
+        if (imagesLeftSpan) {
+            imagesLeftSpan.textContent = `📸 Осталось картинок сегодня: ${remaining}/${MAX_IMAGES_PER_DAY}`;
+        }
+        if (imagesUsedTodaySpan) {
+            imagesUsedTodaySpan.textContent = `${count}/${MAX_IMAGES_PER_DAY}`;
+        }
+        
+        return count;
+    }
+    
+    function compressImage(file, maxWidth, maxHeight, quality, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob(callback, 'image/jpeg', quality);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function uploadImage(file) {
+        return new Promise((resolve, reject) => {
+            compressImage(file, 800, 800, 0.7, (blob) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    resolve(reader.result);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        });
+    }
+    
+    async function sendImage() {
+        if (!currentChatWith) {
+            statusSpan.innerHTML = '⚠️ Выберите чат';
+            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 1500);
+            return;
+        }
+        
+        // ПРОВЕРКА ЛИМИТА ПЕРЕД ОТПРАВКОЙ
+        const canSend = await checkImageLimit();
+        if (!canSend) {
+            return;
+        }
+        
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/gif,image/webp';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                statusSpan.innerHTML = '⚠️ Файл слишком большой (макс. 5MB)';
+                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+                return;
+            }
+            
+            // ПОВТОРНАЯ ПРОВЕРКА (на случай, если лимит изменился)
+            const stillCanSend = await checkImageLimit();
+            if (!stillCanSend) {
+                return;
+            }
+            
+            statusSpan.innerHTML = '📤 Загрузка изображения...';
+            
+            try {
+                const base64 = await uploadImage(file);
+                const chatId = getChatId(currentUser.nickname, currentChatWith);
+                
+                const message = {
+                    sender: currentUser.nickname,
+                    receiver: currentChatWith,
+                    type: 'image',
+                    imageData: base64,
+                    time: getTime(),
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await database.ref('messages/' + chatId).push(message);
+                
+                const updateData = {
+                    lastMessage: '📷 Изображение',
+                    lastTime: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await database.ref('userChats/' + currentUser.nickname + '/' + currentChatWith).update({
+                    ...updateData,
+                    unread: 0
+                });
+                
+                await database.ref('userChats/' + currentChatWith + '/' + currentUser.nickname).update({
+                    ...updateData,
+                    unread: firebase.database.ServerValue.increment(1)
+                });
+                
+                // УВЕЛИЧИВАЕМ СЧЁТЧИК ТОЛЬКО ПОСЛЕ УСПЕШНОЙ ОТПРАВКИ
+                const incremented = await incrementImageCounter();
+                if (!incremented) {
+                    console.warn('Не удалось увеличить счётчик изображений');
+                    statusSpan.innerHTML = '⚠️ Лимит исчерпан! Изображение не отправлено.';
+                    return;
+                }
+                
+                statusSpan.innerHTML = '✅ Изображение отправлено!';
+                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+            } catch (err) {
+                console.error('Ошибка отправки:', err);
+                statusSpan.innerHTML = '❌ Ошибка: ' + err.message;
+                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+            }
+        };
+        input.click();
+    }
+    
+    function showFullscreenImage(imageData) {
+        const fullscreenDiv = document.createElement('div');
+        fullscreenDiv.className = 'fullscreen-image';
+        const img = document.createElement('img');
+        img.src = imageData;
+        fullscreenDiv.appendChild(img);
+        fullscreenDiv.onclick = () => fullscreenDiv.remove();
+        document.body.appendChild(fullscreenDiv);
+    }
+    
     function register() {
         const username = regUsername.value.trim().toLowerCase();
         const password = regPassword.value;
@@ -1010,7 +1312,6 @@
         });
     }
     
-    // ========== ВХОД ==========
     function login() {
         const username = loginUsername.value.trim().toLowerCase();
         const password = loginPassword.value;
@@ -1053,6 +1354,7 @@
             database.ref('users/' + currentUser.nickname + '/lastSeen').set(Date.now());
             
             loadUserChats();
+            updateImageCountDisplay();
             
             database.ref('users/' + currentUser.nickname).onDisconnect().update({
                 online: false,
@@ -1061,7 +1363,6 @@
         });
     }
     
-    // ========== ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ ==========
     function showRegisterScreen() {
         authScreen.classList.add('hidden');
         registerScreen.style.display = 'flex';
@@ -1081,7 +1382,6 @@
         loginPassword.value = '';
     }
     
-    // ========== ВЫХОД ==========
     function logout() {
         if (currentUser) {
             database.ref('users/' + currentUser.nickname + '/online').set(false);
@@ -1116,7 +1416,6 @@
         if (tabSettingsBtn) tabSettingsBtn.classList.remove('active');
     }
     
-    // ========== СМЕНА ПАРОЛЯ ==========
     function changePassword() {
         const newPassword = newPasswordInput.value.trim();
         if (!newPassword) {
@@ -1148,7 +1447,6 @@
         changePasswordBtn.onclick = changePassword;
     }
     
-    // ========== ФУНКЦИЯ СМЕНЫ НИКНЕЙМА ==========
     function changeNickname() {
         let newNickname = newNicknameInput.value.trim().toLowerCase();
         if (newNickname === "") {
@@ -1198,6 +1496,15 @@
                 database.ref('userChats/' + oldNickname).remove();
             });
             
+            // Переносим лимиты изображений
+            database.ref('imageLimits/' + oldNickname).once('value', (snapshot) => {
+                const limits = snapshot.val();
+                if (limits) {
+                    database.ref('imageLimits/' + newNickname).set(limits);
+                    database.ref('imageLimits/' + oldNickname).remove();
+                }
+            });
+            
             setTimeout(() => {
                 currentUser.nickname = newNickname;
                 localStorage.setItem('svpUser', JSON.stringify(currentUser));
@@ -1213,6 +1520,7 @@
                 noChatSelected.style.display = 'flex';
                 inputArea.style.display = 'none';
                 loadUserChats();
+                updateImageCountDisplay();
                 
                 database.ref('users/' + oldNickname).remove();
                 
@@ -1234,7 +1542,6 @@
         }
     };
     
-    // ========== ФУНКЦИЯ УДАЛЕНИЯ ЧАТА ==========
     function deleteChat(chatWithUser) {
         if (!confirm(`Удалить чат с ${chatWithUser}? Все сообщения будут удалены безвозвратно.`)) {
             return;
@@ -1258,7 +1565,6 @@
         setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
     }
     
-    // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
     function getTime() {
         const now = new Date();
         return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1309,11 +1615,23 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message' + (isMy ? ' my-message' : '');
         messageDiv.setAttribute('data-key', msgKey);
-        messageDiv.innerHTML = `
-            ${!isMy ? `<div class="message-sender">${escapeHtml(msg.sender)}</div>` : ''}
-            <div class="message-text">${escapeHtml(msg.text)}</div>
-            <div class="message-time">${msg.time}</div>
-        `;
+        
+        let content = '';
+        if (!isMy) {
+            content += `<div class="message-sender">${escapeHtml(msg.sender)}</div>`;
+        }
+        
+        if (msg.type === 'image' && msg.imageData) {
+            const safeImageData = msg.imageData.replace(/'/g, "\\'");
+            content += `<div class="image-message">
+                            <img src="${msg.imageData}" class="image-preview" onclick="showFullscreenImage('${safeImageData}')" alt="Изображение">
+                        </div>`;
+        } else {
+            content += `<div class="message-text">${escapeHtml(msg.text || '')}</div>`;
+        }
+        
+        content += `<div class="message-time">${msg.time}</div>`;
+        messageDiv.innerHTML = content;
         
         let inserted = false;
         const existingMessages = messagesContainer.querySelectorAll('.message');
@@ -1335,7 +1653,6 @@
         return messageDiv;
     }
     
-    // ========== ПРОВЕРКА СОХРАНЁННОГО ПОЛЬЗОВАТЕЛЯ ==========
     const savedUser = localStorage.getItem('svpUser');
     const savedPasswordHash = localStorage.getItem('svpPasswordHash');
     
@@ -1352,6 +1669,7 @@
                     statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname;
                     database.ref('users/' + currentUser.nickname + '/online').set(true);
                     loadUserChats();
+                    updateImageCountDisplay();
                     database.ref('users/' + currentUser.nickname).onDisconnect().update({
                         online: false,
                         lastSeen: firebase.database.ServerValue.TIMESTAMP
@@ -1365,7 +1683,6 @@
         }
     }
     
-    // ========== НАВЕШИВАНИЕ ОБРАБОТЧИКОВ ==========
     if (loginBtn) loginBtn.onclick = login;
     if (showRegisterBtn) showRegisterBtn.onclick = showRegisterScreen;
     if (showLoginBtn) showLoginBtn.onclick = showLoginScreen;
@@ -1378,7 +1695,6 @@
     regPassword.onkeypress = (e) => { if (e.key === 'Enter') register(); };
     regPasswordConfirm.onkeypress = (e) => { if (e.key === 'Enter') register(); };
     
-    // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
     function switchTab(tabId) {
         if (tabId === 'chat') {
             chatPane.classList.add('active-pane');
@@ -1399,7 +1715,6 @@
     if (tabChatBtn) tabChatBtn.onclick = () => switchTab('chat');
     if (tabSettingsBtn) tabSettingsBtn.onclick = () => switchTab('settings');
     
-    // ========== ПОИСК ПОЛЬЗОВАТЕЛЕЙ ==========
     searchBtn.onclick = () => {
         const query = searchInput.value.trim().toLowerCase();
         if (!query) return;
@@ -1434,7 +1749,6 @@
         });
     };
     
-    // ========== ОТКРЫТИЕ ЧАТА ==========
     function openChatWith(otherUser) {
         if (otherUser === currentUser.nickname) {
             statusSpan.innerHTML = '⚠️ Нельзя писать самому себе';
@@ -1468,7 +1782,6 @@
         loadMessages(otherUser);
     }
     
-    // ========== ЗАГРУЗКА СООБЩЕНИЙ ==========
     function loadMessages(withUser) {
         const chatId = getChatId(currentUser.nickname, withUser);
         currentMessagesRef = database.ref('messages/' + chatId);
@@ -1532,7 +1845,6 @@
         } catch(e) {}
     }
     
-    // ========== ЗАГРУЗКА СПИСКА ЧАТОВ ==========
     function loadUserChats() {
         detachChatsListener();
         
@@ -1569,7 +1881,6 @@
         });
     }
     
-    // ========== ОТПРАВКА СООБЩЕНИЯ ==========
     function sendMessage() {
         if (!currentChatWith) {
             statusSpan.innerHTML = '⚠️ Выберите чат';
@@ -1585,6 +1896,7 @@
         const message = {
             sender: currentUser.nickname,
             receiver: currentChatWith,
+            type: 'text',
             text: text,
             time: getTime(),
             timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -1592,7 +1904,7 @@
         
         messageInput.value = '';
         
-        database.ref('messages/' + chatId).push(message).then((newMsgRef) => {
+        database.ref('messages/' + chatId).push(message).then(() => {
             const updateData = {
                 lastMessage: text.length > 30 ? text.slice(0, 27) + '...' : text,
                 lastTime: firebase.database.ServerValue.TIMESTAMP
@@ -1616,8 +1928,8 @@
     
     sendBtn.onclick = sendMessage;
     messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    if (imageUploadBtn) imageUploadBtn.onclick = sendImage;
     
-    // ========== СТАТУС ОНЛАЙН ==========
     database.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === true && currentUser) {
             statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname;
@@ -1629,7 +1941,12 @@
         }
     });
     
-    console.log('✅ Чат готов!');
+    window.openChatWith = openChatWith;
+    window.deleteChat = deleteChat;
+    window.showFullscreenImage = showFullscreenImage;
+    
+    console.log('✅ Чат с поддержкой картинок готов! Лимит: 4 картинки в день на пользователя');
+    console.log('🔧 Исправлено: счётчик хранится в imageLimits и правильно увеличивается');
 </script>
 </body>
 </html>
