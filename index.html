@@ -12,7 +12,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ========= ТЁМНАЯ ТЕМА ========= */
         body {
             background: #0a0a0a;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', monospace;
@@ -47,7 +46,7 @@
             font-family: monospace;
             font-size: 0.9rem;
             font-weight: bold;
-            padding: 10px 0;
+            padding: 12px 0;
             cursor: pointer;
             background: #0a0a0a;
             color: #ffaa55;
@@ -63,22 +62,52 @@
             background: #0f0f0f;
             border-bottom: 2px solid #ff5e00;
         }
-        .messages {
-            background: #0b0b0b;
+        /* Стили для сообщений с аватарками */
+        .message-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .message-wrapper.my-message-wrapper {
+            justify-content: flex-end;
+        }
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1f0a00;
+            border: 1px solid #ff5e00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .message-avatar .default-avatar {
+            font-size: 18px;
+        }
+        .message-content {
+            flex: 1;
+            max-width: calc(80% - 40px);
         }
         .message {
             background: #111111;
             border: 1px solid #2a2a2a;
             padding: 8px 12px;
             border-radius: 18px;
-            margin-bottom: 8px;
-            max-width: 80%;
             word-wrap: break-word;
+            position: relative;
+            transition: transform 0.2s ease;
         }
         .my-message {
             background: #1f0a00;
             border: 1px solid #ff5e00;
-            margin-left: auto;
         }
         .message-sender {
             color: #ff8c00;
@@ -94,6 +123,38 @@
             font-size: 8px;
             text-align: right;
             margin-top: 3px;
+        }
+        .reply-indicator {
+            background: rgba(255, 94, 0, 0.2);
+            border-left: 3px solid #ff5e00;
+            padding: 4px 8px;
+            margin-bottom: 6px;
+            font-size: 11px;
+            border-radius: 12px;
+            color: #ffaa55;
+        }
+        .reply-indicator span {
+            color: #ff8c00;
+            font-weight: bold;
+        }
+        .reply-preview {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 6px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #ffaa55;
+        }
+        .reply-preview button {
+            background: none;
+            border: none;
+            color: #ff6a4b;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 5px;
         }
         .input-area {
             background: #050505;
@@ -117,12 +178,11 @@
         .input-area button {
             background: #000;
             color: #ff8c00;
-            border: 1.5px solid #ff5e00;
-            border: none;
             border-radius: 25px;
             padding: 10px 18px;
             font-weight: bold;
             cursor: pointer;
+            border: 1px solid #ff5e00;
         }
         .status {
             background: #0f0f0f;
@@ -195,18 +255,21 @@
         }
         .chats-list {
             background: #0b0b0b;
-            border-bottom: 1px solid #2a2a2a;
-            max-height: 150px;
+            flex: 1;
             overflow-y: auto;
-            flex-shrink: 0;
+            max-height: none;
         }
         .chat-tab {
             border-bottom: 1px solid #2a2a2a;
-            padding: 10px 15px;
+            padding: 12px 15px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.2s;
+        }
+        .chat-tab:hover {
+            background: #1a1a1a;
         }
         .chat-tab.active {
             background: #1f0a00;
@@ -215,7 +278,30 @@
         .chat-tab-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            flex: 1;
+        }
+        .chat-tab-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1f0a00;
+            border: 1px solid #ff5e00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .chat-tab-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .chat-tab-avatar .default-avatar {
+            font-size: 20px;
+        }
+        .chat-tab-info {
             flex: 1;
         }
         .chat-tab-name {
@@ -223,7 +309,12 @@
             font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+        }
+        .chat-tab-lastmsg {
+            color: #aa6f3c;
+            font-size: 11px;
+            margin-top: 2px;
         }
         .chat-tab-unread {
             background: #ff5e00;
@@ -251,6 +342,8 @@
             font-size: 14px;
             text-align: center;
             padding: 20px;
+            flex-direction: column;
+            gap: 15px;
         }
         .search-result {
             background: #1a1a1a;
@@ -286,6 +379,29 @@
             justify-content: flex-end;
             align-items: center;
             flex-shrink: 0;
+            gap: 10px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1f0a00;
+            border: 1px solid #ff5e00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .user-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .user-name {
             color: #ffaa55;
@@ -295,17 +411,25 @@
             border-radius: 20px;
             cursor: pointer;
         }
-        .nickname-input {
+        .avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 10px auto;
             background: #1a1a1a;
-            border: 1px solid #ff5e00;
-            color: #ffb347;
+            border: 2px solid #ff5e00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .avatar-preview img {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 30px;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 12px;
-            outline: none;
+            height: 100%;
+            object-fit: cover;
+        }
+        .avatar-preview .default-avatar {
+            font-size: 40px;
         }
         .auth-card {
             background: #111;
@@ -446,14 +570,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
         .messages {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            display: none;
-        }
-        .messages.active {
             display: block;
         }
         .input-row {
@@ -487,24 +609,21 @@
             display: none;
         }
         
-        /* Стили для статуса онлайн */
         .online-dot {
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: #00ff88;
             box-shadow: 0 0 4px #00ff88;
-            margin-right: 6px;
             animation: pulse 1.5s infinite;
         }
         .offline-dot {
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: #555;
-            margin-right: 6px;
         }
         @keyframes pulse {
             0% { opacity: 1; transform: scale(1); }
@@ -522,7 +641,23 @@
         .chat-header-user {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+        .chat-header-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #1f0a00;
+            border: 1px solid #ff5e00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .chat-header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .chat-header-user strong {
             color: #ffaa55;
@@ -540,17 +675,30 @@
         .chat-header-status.offline {
             color: #888;
         }
+        .back-to-contacts {
+            background: #1a1a1a;
+            border: 1px solid #ff5e00;
+            color: #ffaa55;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
         
         @media (max-width: 500px) {
-            .message {
-                max-width: 85%;
-            }
-            .chats-list {
-                max-height: 120px;
+            .message-content {
+                max-width: calc(85% - 40px);
             }
             .image-preview {
                 max-width: 150px;
                 max-height: 150px;
+            }
+            .chat-tab-avatar {
+                width: 36px;
+                height: 36px;
             }
         }
     </style>
@@ -592,7 +740,10 @@
 <div class="chat" id="mainChat" style="display: none;">
     <div class="header">
         <div class="user-info">
-            <span class="user-name" id="currentUserName">👤 <span id="userNameText">User</span> ✏️</span>
+            <div class="user-avatar-small" id="userAvatarBtn">
+                <div class="default-avatar">👤</div>
+            </div>
+            <span class="user-name" id="currentUserName"> <span id="userNameText">User</span> ✏️</span>
         </div>
     </div>
     
@@ -601,12 +752,13 @@
     </div>
     
     <div class="tabs">
-        <button class="tab-btn active" data-tab="chat" id="tabChatBtn">💬 ЧАТЫ</button>
+        <button class="tab-btn active" data-tab="contacts" id="tabContactsBtn">📋 КОНТАКТЫ</button>
+        <button class="tab-btn" data-tab="chat" id="tabChatBtn">💬 ЧАТ</button>
         <button class="tab-btn" data-tab="settings" id="tabSettingsBtn">⚙️ НАСТРОЙКИ</button>
     </div>
 
     <div class="tab-content">
-        <div class="tab-pane active-pane" id="chatPane">
+        <div class="tab-pane active-pane" id="contactsPane">
             <div class="search-area">
                 <div class="search-row">
                     <input type="text" id="searchInput" placeholder="Поиск по никнейму...">
@@ -619,18 +771,26 @@
             </div>
             
             <div class="chats-list" id="chatsList">
-                <div style="padding: 10px; text-align: center; font-size: 11px; opacity: 0.7; color: #aa6f3c;">⬇️ Ваши диалоги ⬇️</div>
+                <div style="padding: 10px; text-align: center; font-size: 11px; opacity: 0.7; color: #aa6f3c;">📋 ВАШИ ДИАЛОГИ</div>
                 <div id="chatsContainer"></div>
             </div>
-            
+        </div>
+        
+        <div class="tab-pane" id="chatPane">
+            <div id="chatHeaderPlaceholder"></div>
             <div class="messages-area">
-                <div id="noChatSelected" class="no-chat-selected">
-                    👈 Выберите чат или найдите пользователя
+                <div id="noChatSelectedInChat" class="no-chat-selected">
+                    👈 Перейдите во вкладку "КОНТАКТЫ"<br>и выберите собеседника
+                    <button class="back-to-contacts" id="goToContactsBtn">📋 Перейти к контактам</button>
                 </div>
-                <div id="messagesContainer" class="messages"></div>
+                <div id="messagesContainer" class="messages" style="display: none;"></div>
             </div>
             
             <div class="input-area" id="inputArea" style="display: none;">
+                <div id="replyPreview" class="reply-preview" style="display: none;">
+                    <span>↩️ Ответ <strong id="replyToName"></strong>: <span id="replyToText"></span></span>
+                    <button id="cancelReplyBtn">✖️</button>
+                </div>
                 <div class="input-row">
                     <input type="text" id="messageInput" placeholder="Сообщение...">
                     <button id="sendBtn">➤</button>
@@ -642,6 +802,20 @@
         
         <div class="tab-pane" id="settingsPane">
             <div class="settings-pane">
+                <div class="settings-card">
+                    <h3>🖼️ АВАТАРКА</h3>
+                    <div class="avatar-preview" id="avatarPreview">
+                        <div class="default-avatar">👤</div>
+                    </div>
+                    <input type="file" id="avatarUpload" accept="image/jpeg,image/png,image/gif" style="display: none;">
+                    <button class="settings-btn" id="changeAvatarBtn">
+                        📸 ЗАГРУЗИТЬ АВАТАРКУ
+                    </button>
+                    <button class="settings-btn" id="removeAvatarBtn" style="margin-top: 10px; background: #2a0a00;">
+                        🗑️ УДАЛИТЬ АВАТАРКУ
+                    </button>
+                </div>
+                
                 <div class="stats-card">
                     <h3>📊 СТАТИСТИКА КАРТИНОК</h3>
                     <div class="stats-text" id="imagesUsedToday">0/4</div>
@@ -704,11 +878,12 @@
     let isInitialLoad = true;
     const MAX_IMAGES_PER_DAY = 4;
     
-    // Флаги для отслеживания активности приложения
     let isAppActive = true;
     let isUserOnline = false;
     let heartbeatInterval = null;
     let lastActivityTime = Date.now();
+    let currentReplyTo = null;
+    let userAvatarsCache = new Map(); // Кэш аватарок пользователей
     
     // DOM элементы
     const authScreen = document.getElementById('authScreen');
@@ -733,7 +908,7 @@
     const searchUserName = document.getElementById('searchUserName');
     const startChatBtn = document.getElementById('startChatBtn');
     const chatsContainer = document.getElementById('chatsContainer');
-    const noChatSelected = document.getElementById('noChatSelected');
+    const noChatSelectedInChat = document.getElementById('noChatSelectedInChat');
     const messagesContainer = document.getElementById('messagesContainer');
     const inputArea = document.getElementById('inputArea');
     const messageInput = document.getElementById('messageInput');
@@ -741,8 +916,10 @@
     const imageUploadBtn = document.getElementById('imageUploadBtn');
     const imagesLeftSpan = document.getElementById('imagesLeft');
     const imagesUsedTodaySpan = document.getElementById('imagesUsedToday');
+    const tabContactsBtn = document.getElementById('tabContactsBtn');
     const tabChatBtn = document.getElementById('tabChatBtn');
     const tabSettingsBtn = document.getElementById('tabSettingsBtn');
+    const contactsPane = document.getElementById('contactsPane');
     const chatPane = document.getElementById('chatPane');
     const settingsPane = document.getElementById('settingsPane');
     const logoutSettingsBtn = document.getElementById('logoutSettingsBtn');
@@ -750,234 +927,386 @@
     const newNicknameInput = document.getElementById('newNicknameInput');
     const changePasswordBtn = document.getElementById('changePasswordBtn');
     const newPasswordInput = document.getElementById('newPasswordInput');
+    const replyPreview = document.getElementById('replyPreview');
+    const replyToNameSpan = document.getElementById('replyToName');
+    const replyToTextSpan = document.getElementById('replyToText');
+    const cancelReplyBtn = document.getElementById('cancelReplyBtn');
+    const goToContactsBtn = document.getElementById('goToContactsBtn');
+    const chatHeaderPlaceholder = document.getElementById('chatHeaderPlaceholder');
+    const avatarUpload = document.getElementById('avatarUpload');
+    const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+    const removeAvatarBtn = document.getElementById('removeAvatarBtn');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const userAvatarBtn = document.getElementById('userAvatarBtn');
     
-    // Хранилище слушателей статусов других пользователей
     let onlineListeners = new Map();
     
-    // ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ СТАТУСА В FIREBASE
-    async function updateFirebaseOnlineStatus(online) {
-        if (!currentUser) return;
-        
-        if (online === isUserOnline) return;
-        
-        isUserOnline = online;
-        
+    // === ФУНКЦИИ ДЛЯ РАБОТЫ С АВАТАРКАМИ ===
+    function getDefaultAvatarHtml() {
+        return '<div class="default-avatar">👤</div>';
+    }
+    
+    async function loadUserAvatar(username) {
+        if (userAvatarsCache.has(username)) {
+            return userAvatarsCache.get(username);
+        }
         try {
-            await database.ref('users/' + currentUser.nickname + '/online').set(online);
-            await database.ref('users/' + currentUser.nickname + '/lastSeen').set(firebase.database.ServerValue.TIMESTAMP);
-            
-            if (online) {
-                statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname;
-                console.log('🟢 Статус обновлён: ONLINE');
-            } else {
-                statusSpan.innerHTML = '🔴 OFFLINE • ' + currentUser.nickname;
-                console.log('🔴 Статус обновлён: OFFLINE');
-            }
+            const snapshot = await database.ref('users/' + username + '/avatar').once('value');
+            const avatarData = snapshot.val();
+            userAvatarsCache.set(username, avatarData);
+            return avatarData;
         } catch (err) {
-            console.error('Ошибка обновления статуса:', err);
+            return null;
         }
     }
     
-    // ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ АКТИВНОСТИ (вызывается при любом действии пользователя)
+    function getAvatarHtml(avatarData) {
+        if (avatarData && avatarData !== 'null' && avatarData !== '') {
+            return `<img src="${avatarData}" alt="avatar">`;
+        }
+        return '<div class="default-avatar">👤</div>';
+    }
+    
+    async function updateUserAvatarInUI(username, elementSelector) {
+        const avatarData = await loadUserAvatar(username);
+        const elements = document.querySelectorAll(elementSelector);
+        elements.forEach(el => {
+            if (avatarData && avatarData !== 'null') {
+                el.innerHTML = `<img src="${avatarData}" alt="avatar">`;
+            } else {
+                el.innerHTML = '<div class="default-avatar">👤</div>';
+            }
+        });
+    }
+    
+    async function updateCurrentUserAvatar() {
+        if (!currentUser) return;
+        const avatarData = await loadUserAvatar(currentUser.nickname);
+        const avatarElements = document.querySelectorAll('.user-avatar-small, #avatarPreview');
+        avatarElements.forEach(el => {
+            if (avatarData && avatarData !== 'null') {
+                el.innerHTML = `<img src="${avatarData}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
+            } else {
+                el.innerHTML = '<div class="default-avatar">👤</div>';
+            }
+        });
+    }
+    
+    function compressAvatar(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let width = img.width, height = img.height;
+                const maxSize = 200;
+                if (width > maxSize) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                }
+                if (height > maxSize) {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob(callback, 'image/jpeg', 0.8);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    async function uploadAvatar(file) {
+        return new Promise((resolve, reject) => {
+            compressAvatar(file, (blob) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        });
+    }
+    
+    async function changeAvatar() {
+        const file = avatarUpload.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            statusSpan.innerHTML = '⚠️ Аватарка не должна превышать 2MB';
+            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+            return;
+        }
+        statusSpan.innerHTML = '📤 Загрузка аватарки...';
+        try {
+            const base64 = await uploadAvatar(file);
+            await database.ref('users/' + currentUser.nickname + '/avatar').set(base64);
+            userAvatarsCache.set(currentUser.nickname, base64);
+            await updateCurrentUserAvatar();
+            statusSpan.innerHTML = '✅ Аватарка обновлена!';
+            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+            
+            // Обновляем аватарки в интерфейсе
+            refreshAllAvatars();
+        } catch (err) {
+            statusSpan.innerHTML = '❌ Ошибка загрузки';
+        }
+        avatarUpload.value = '';
+    }
+    
+    async function removeAvatar() {
+        if (!confirm('Удалить аватарку?')) return;
+        await database.ref('users/' + currentUser.nickname + '/avatar').remove();
+        userAvatarsCache.set(currentUser.nickname, null);
+        await updateCurrentUserAvatar();
+        refreshAllAvatars();
+        statusSpan.innerHTML = '✅ Аватарка удалена';
+        setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+    }
+    
+    async function refreshAllAvatars() {
+        // Обновляем список чатов
+        const chatTabs = document.querySelectorAll('.chat-tab');
+        for (const tab of chatTabs) {
+            const username = tab.getAttribute('data-user');
+            if (username) {
+                const avatarData = await loadUserAvatar(username);
+                const avatarDiv = tab.querySelector('.chat-tab-avatar');
+                if (avatarDiv) {
+                    if (avatarData && avatarData !== 'null') {
+                        avatarDiv.innerHTML = `<img src="${avatarData}" alt="avatar">`;
+                    } else {
+                        avatarDiv.innerHTML = '<div class="default-avatar">👤</div>';
+                    }
+                }
+            }
+        }
+        
+        // Обновляем шапку чата если открыт
+        if (currentChatWith) {
+            const avatarData = await loadUserAvatar(currentChatWith);
+            const headerAvatar = document.querySelector('.chat-header-avatar');
+            if (headerAvatar) {
+                if (avatarData && avatarData !== 'null') {
+                    headerAvatar.innerHTML = `<img src="${avatarData}" alt="avatar">`;
+                } else {
+                    headerAvatar.innerHTML = '<div class="default-avatar">👤</div>';
+                }
+            }
+        }
+        
+        // Перерисовываем сообщения (обновляем аватарки)
+        const messages = messagesContainer.querySelectorAll('.message-wrapper');
+        for (const wrapper of messages) {
+            const sender = wrapper.getAttribute('data-sender');
+            if (sender && sender !== currentUser?.nickname) {
+                const avatarData = await loadUserAvatar(sender);
+                const avatarDiv = wrapper.querySelector('.message-avatar');
+                if (avatarDiv) {
+                    if (avatarData && avatarData !== 'null') {
+                        avatarDiv.innerHTML = `<img src="${avatarData}" alt="avatar">`;
+                    } else {
+                        avatarDiv.innerHTML = '<div class="default-avatar">👤</div>';
+                    }
+                }
+            }
+        }
+    }
+    
+    // === ФУНКЦИИ ДЛЯ ОТВЕТОВ ===
+    function showReplyPreview(message) {
+        currentReplyTo = message;
+        let previewText = '';
+        if (message.type === 'image') {
+            previewText = '📷 Изображение';
+        } else {
+            previewText = message.text.length > 30 ? message.text.slice(0, 27) + '...' : message.text;
+        }
+        replyToNameSpan.textContent = message.sender;
+        replyToTextSpan.textContent = previewText;
+        replyPreview.style.display = 'flex';
+        messageInput.focus();
+    }
+    
+    function cancelReply() {
+        currentReplyTo = null;
+        replyPreview.style.display = 'none';
+    }
+    
+    function makeMessageSwipeable(messageDiv, messageData) {
+        let touchStartX = 0;
+        let isSwiping = false;
+        
+        const handleTouchStart = (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            isSwiping = true;
+        };
+        
+        const handleTouchMove = (e) => {
+            if (!isSwiping) return;
+            const currentX = e.changedTouches[0].screenX;
+            const diff = touchStartX - currentX;
+            if (diff > 10 && diff < 80) {
+                e.preventDefault();
+                messageDiv.style.transform = `translateX(-${Math.min(diff, 60)}px)`;
+            } else if (diff <= 10) {
+                messageDiv.style.transform = 'translateX(0px)';
+            }
+        };
+        
+        const handleTouchEnd = (e) => {
+            if (!isSwiping) return;
+            const diff = touchStartX - e.changedTouches[0].screenX;
+            if (diff > 40) {
+                messageDiv.style.transform = 'translateX(-60px)';
+                setTimeout(() => {
+                    if (messageDiv.style.transform === 'translateX(-60px)') {
+                        showReplyPreview(messageData);
+                        messageDiv.style.transform = 'translateX(0px)';
+                    }
+                }, 100);
+            } else {
+                messageDiv.style.transform = 'translateX(0px)';
+            }
+            isSwiping = false;
+        };
+        
+        messageDiv.addEventListener('touchstart', handleTouchStart, { passive: false });
+        messageDiv.addEventListener('touchmove', handleTouchMove, { passive: false });
+        messageDiv.addEventListener('touchend', handleTouchEnd);
+    }
+    
+    // === ОСНОВНЫЕ ФУНКЦИИ ===
+    async function updateFirebaseOnlineStatus(online) {
+        if (!currentUser) return;
+        if (online === isUserOnline) return;
+        isUserOnline = online;
+        try {
+            await database.ref('users/' + currentUser.nickname + '/online').set(online);
+            await database.ref('users/' + currentUser.nickname + '/lastSeen').set(firebase.database.ServerValue.TIMESTAMP);
+            statusSpan.innerHTML = online ? '🟢 ONLINE • ' + currentUser.nickname : '🔴 OFFLINE • ' + currentUser.nickname;
+        } catch (err) { console.error(err); }
+    }
+    
     function updateActivity() {
         lastActivityTime = Date.now();
         if (!isAppActive && currentUser) {
             isAppActive = true;
             updateFirebaseOnlineStatus(true);
-            console.log('🟢 Активность обнаружена, статус ONLINE');
         }
     }
     
-    // ФУНКЦИЯ ДЛЯ ПРОВЕРКИ АКТИВНОСТИ (вызывается каждые 3 секунды)
     function checkActivity() {
-        const now = Date.now();
-        const inactiveTime = now - lastActivityTime;
-        
-        // Если нет активности более 5 секунд - считаем что пользователь неактивен
-        if (inactiveTime > 5000 && isAppActive && currentUser) {
+        if (Date.now() - lastActivityTime > 5000 && isAppActive && currentUser) {
             isAppActive = false;
             updateFirebaseOnlineStatus(false);
-            console.log('🔴 Нет активности >5 сек, статус OFFLINE');
         }
     }
     
-    // ОТСЛЕЖИВАНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЬСКИХ ДЕЙСТВИЙ
     function trackUserActivity() {
         const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click', 'touchmove'];
-        events.forEach(event => {
-            document.addEventListener(event, updateActivity, { passive: true });
-        });
-        
-        // Специально для поля ввода сообщений
+        events.forEach(event => document.addEventListener(event, updateActivity, { passive: true }));
         if (messageInput) {
             messageInput.addEventListener('focus', updateActivity);
             messageInput.addEventListener('input', updateActivity);
         }
-        
-        // Запускаем интервал проверки активности
         heartbeatInterval = setInterval(checkActivity, 3000);
     }
     
-    // ОТСЛЕЖИВАНИЕ ВИДИМОСТИ ВКЛАДКИ (Page Visibility API)
     function handleVisibilityChange() {
-        if (document.hidden) {
-            // Вкладка скрыта - сразу оффлайн
-            if (isAppActive && currentUser) {
-                isAppActive = false;
-                updateFirebaseOnlineStatus(false);
-                console.log('🔴 Вкладка скрыта, статус OFFLINE');
-            }
-        } else {
-            // Вкладка видна - обновляем активность
+        if (document.hidden && isAppActive && currentUser) {
+            isAppActive = false;
+            updateFirebaseOnlineStatus(false);
+        } else if (!document.hidden) {
             updateActivity();
         }
     }
     
-    // ОТСЛЕЖИВАНИЕ ФОКУСА ОКНА
-    function handleWindowFocus() {
-        updateActivity();
-    }
-    
     function handleWindowBlur() {
-        // При потере фокуса окна тоже ставим оффлайн
         if (isAppActive && currentUser) {
             isAppActive = false;
             updateFirebaseOnlineStatus(false);
-            console.log('🔴 Окно потеряло фокус, статус OFFLINE');
         }
     }
     
-    // ЗАКРЫТИЕ ВКЛАДКИ
     function handlePageClose() {
         if (currentUser) {
-            // Синхронная отправка статуса оффлайн
-            const data = JSON.stringify({
-                online: false,
-                lastSeen: Date.now()
-            });
-            const dbUrl = firebaseConfig.databaseURL;
-            const path = `users/${currentUser.nickname}/online.json`;
-            navigator.sendBeacon(`${dbUrl}/${path}`, data);
+            const data = JSON.stringify({ online: false, lastSeen: Date.now() });
+            navigator.sendBeacon(`${firebaseConfig.databaseURL}/users/${currentUser.nickname}/online.json`, data);
         }
     }
     
-    // ИНИЦИАЛИЗАЦИЯ ВСЕХ СЛУШАТЕЛЕЙ
     function initActivityListeners() {
         trackUserActivity();
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('focus', handleWindowFocus);
         window.addEventListener('blur', handleWindowBlur);
         window.addEventListener('beforeunload', handlePageClose);
         window.addEventListener('pagehide', handlePageClose);
-        
-        // Отслеживаем изменение интернет-соединения
-        window.addEventListener('online', () => {
-            if (currentUser && !document.hidden) {
-                updateActivity();
-            }
-        });
-        window.addEventListener('offline', () => {
-            if (currentUser) {
-                statusSpan.innerHTML = '⚠️ НЕТ ИНТЕРНЕТА • ' + currentUser.nickname;
-                updateFirebaseOnlineStatus(false);
-            }
-        });
     }
     
-    // ОСТАНОВКА ВСЕХ СЛУШАТЕЛЕЙ
     function stopActivityListeners() {
-        if (heartbeatInterval) {
-            clearInterval(heartbeatInterval);
-            heartbeatInterval = null;
-        }
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener('focus', handleWindowFocus);
         window.removeEventListener('blur', handleWindowBlur);
         window.removeEventListener('beforeunload', handlePageClose);
         window.removeEventListener('pagehide', handlePageClose);
     }
     
-    // Функция для отслеживания онлайн статуса других пользователей
     function watchUserOnlineStatus(username, callback) {
         if (!username) return;
-        
         if (onlineListeners.has(username)) {
-            const oldRef = onlineListeners.get(username);
-            oldRef.off('value');
+            onlineListeners.get(username).off('value');
             onlineListeners.delete(username);
         }
-        
         const userRef = database.ref('users/' + username + '/online');
-        const handler = (snapshot) => {
-            const isOnline = snapshot.val() === true;
-            callback(isOnline);
-        };
+        const handler = (snapshot) => callback(snapshot.val() === true);
         userRef.on('value', handler);
         onlineListeners.set(username, userRef);
     }
     
     function unwatchUserOnlineStatus(username) {
         if (onlineListeners.has(username)) {
-            const ref = onlineListeners.get(username);
-            ref.off('value');
+            onlineListeners.get(username).off('value');
             onlineListeners.delete(username);
         }
     }
     
-    // Обновление статуса в шапке чата
-    function updateChatHeaderStatus(username, isOnline) {
-        let chatHeader = document.querySelector('.chat-header-info');
-        if (!chatHeader && username) {
-            chatHeader = document.createElement('div');
-            chatHeader.className = 'chat-header-info';
-            const messagesArea = document.querySelector('.messages-area');
-            if (messagesArea && messagesArea.firstChild) {
-                messagesArea.insertBefore(chatHeader, messagesArea.firstChild);
-            } else if (messagesArea) {
-                messagesArea.appendChild(chatHeader);
-            }
-        }
-        
-        if (chatHeader && username) {
-            const statusText = isOnline ? '🟢 В сети' : '⚫ Не в сети';
-            const statusClass = isOnline ? 'online' : 'offline';
-            chatHeader.innerHTML = `
+    async function updateChatHeaderStatus(username, isOnline) {
+        if (!chatHeaderPlaceholder) return;
+        const statusText = isOnline ? '🟢 В сети' : '⚫ Не в сети';
+        const statusClass = isOnline ? 'online' : 'offline';
+        const avatarData = await loadUserAvatar(username);
+        const avatarHtml = getAvatarHtml(avatarData);
+        chatHeaderPlaceholder.innerHTML = `
+            <div class="chat-header-info">
                 <div class="chat-header-user">
-                    <strong>💬 ${escapeHtml(username)}</strong>
+                    <div class="chat-header-avatar">${avatarHtml}</div>
+                    <strong>${escapeHtml(username)}</strong>
                     <span class="chat-header-status ${statusClass}">${statusText}</span>
                 </div>
-            `;
-        }
+            </div>
+        `;
     }
     
-    // Обновление статуса в списке чатов
     function updateChatListStatus(username, isOnline) {
         const chatTab = document.querySelector(`.chat-tab[data-user="${username}"]`);
         if (chatTab) {
-            const nameSpan = chatTab.querySelector('.chat-tab-name');
-            if (nameSpan) {
-                const oldDot = nameSpan.querySelector('.online-dot, .offline-dot');
-                if (oldDot) oldDot.remove();
-                
-                const dot = document.createElement('span');
+            const dot = chatTab.querySelector('.online-dot, .offline-dot');
+            if (dot) {
                 dot.className = isOnline ? 'online-dot' : 'offline-dot';
-                nameSpan.insertBefore(dot, nameSpan.firstChild);
             }
         }
     }
     
-    // Функции для лимита картинок
     async function checkImageLimit() {
         if (!currentUser) return false;
         const todayKey = getTodayKey();
-        const imageCountRef = database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`);
-        const snapshot = await imageCountRef.once('value');
+        const snapshot = await database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`).once('value');
         const count = snapshot.val() || 0;
         if (count >= MAX_IMAGES_PER_DAY) {
             statusSpan.innerHTML = `⚠️ Лимит ${MAX_IMAGES_PER_DAY} картинок в день исчерпан!`;
-            setTimeout(() => {
-                if (currentUser && isAppActive) statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname;
-            }, 3000);
+            setTimeout(() => { if (currentUser) statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname; }, 3000);
             return false;
         }
         return true;
@@ -990,36 +1319,23 @@
         try {
             let success = false;
             await imageCountRef.transaction((currentValue) => {
-                const newCount = (currentValue || 0) + 1;
                 if ((currentValue || 0) >= MAX_IMAGES_PER_DAY) return;
                 success = true;
-                return newCount;
+                return (currentValue || 0) + 1;
             });
-            if (success) {
-                await updateImageCountDisplay();
-                return true;
-            }
+            if (success) { await updateImageCountDisplay(); return true; }
             return false;
-        } catch (error) {
-            console.error('Ошибка:', error);
-            return false;
-        }
+        } catch (error) { return false; }
     }
     
     async function updateImageCountDisplay() {
-        if (!currentUser) return 0;
+        if (!currentUser) return;
         const todayKey = getTodayKey();
-        const imageCountRef = database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`);
-        const snapshot = await imageCountRef.once('value');
+        const snapshot = await database.ref(`imageLimits/${currentUser.nickname}/${todayKey}`).once('value');
         const count = snapshot.val() || 0;
         const remaining = MAX_IMAGES_PER_DAY - count;
-        if (imagesLeftSpan) {
-            imagesLeftSpan.textContent = `📸 Осталось картинок сегодня: ${remaining}/${MAX_IMAGES_PER_DAY}`;
-        }
-        if (imagesUsedTodaySpan) {
-            imagesUsedTodaySpan.textContent = `${count}/${MAX_IMAGES_PER_DAY}`;
-        }
-        return count;
+        if (imagesLeftSpan) imagesLeftSpan.textContent = `📸 Осталось картинок сегодня: ${remaining}/${MAX_IMAGES_PER_DAY}`;
+        if (imagesUsedTodaySpan) imagesUsedTodaySpan.textContent = `${count}/${MAX_IMAGES_PER_DAY}`;
     }
     
     function compressImage(file, maxWidth, maxHeight, quality, callback) {
@@ -1027,21 +1343,12 @@
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                if (height > maxHeight) {
-                    width = (width * maxHeight) / height;
-                    height = maxHeight;
-                }
+                let width = img.width, height = img.height;
+                if (width > maxWidth) { height = (height * maxWidth) / width; width = maxWidth; }
+                if (height > maxHeight) { width = (width * maxHeight) / height; height = maxHeight; }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                canvas.width = width; canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
                 canvas.toBlob(callback, 'image/jpeg', quality);
             };
             img.src = e.target.result;
@@ -1063,12 +1370,9 @@
     async function sendImage() {
         if (!currentChatWith) {
             statusSpan.innerHTML = '⚠️ Выберите чат';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 1500);
             return;
         }
-        const canSend = await checkImageLimit();
-        if (!canSend) return;
-        
+        if (!(await checkImageLimit())) return;
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/jpeg,image/png,image/gif,image/webp';
@@ -1077,7 +1381,6 @@
             if (!file) return;
             if (file.size > 5 * 1024 * 1024) {
                 statusSpan.innerHTML = '⚠️ Файл слишком большой (макс. 5MB)';
-                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
                 return;
             }
             statusSpan.innerHTML = '📤 Загрузка...';
@@ -1085,27 +1388,17 @@
                 const base64 = await uploadImage(file);
                 const chatId = getChatId(currentUser.nickname, currentChatWith);
                 const message = {
-                    sender: currentUser.nickname,
-                    receiver: currentChatWith,
-                    type: 'image',
-                    imageData: base64,
-                    time: getTime(),
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                    sender: currentUser.nickname, receiver: currentChatWith, type: 'image',
+                    imageData: base64, time: getTime(), timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
                 await database.ref('messages/' + chatId).push(message);
-                const updateData = {
-                    lastMessage: '📷 Изображение',
-                    lastTime: firebase.database.ServerValue.TIMESTAMP
-                };
+                const updateData = { lastMessage: '📷 Изображение', lastTime: firebase.database.ServerValue.TIMESTAMP };
                 await database.ref('userChats/' + currentUser.nickname + '/' + currentChatWith).update({...updateData, unread: 0});
                 await database.ref('userChats/' + currentChatWith + '/' + currentUser.nickname).update({...updateData, unread: firebase.database.ServerValue.increment(1)});
                 await incrementImageCounter();
                 statusSpan.innerHTML = '✅ Изображение отправлено!';
                 setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
-            } catch (err) {
-                statusSpan.innerHTML = '❌ Ошибка';
-                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
-            }
+            } catch (err) { statusSpan.innerHTML = '❌ Ошибка'; }
         };
         input.click();
     }
@@ -1124,67 +1417,34 @@
         const username = regUsername.value.trim().toLowerCase();
         const password = regPassword.value;
         const passwordConfirm = regPasswordConfirm.value;
-        if (!username || !password) {
-            regMessage.textContent = 'Заполните все поля!';
-            return;
-        }
-        if (username.length < 3) {
-            regMessage.textContent = 'Логин должен быть не менее 3 символов';
-            return;
-        }
-        if (password.length < 4) {
-            regMessage.textContent = 'Пароль должен быть не менее 4 символов';
-            return;
-        }
-        if (password !== passwordConfirm) {
-            regMessage.textContent = 'Пароли не совпадают!';
-            return;
-        }
+        if (!username || !password) { regMessage.textContent = 'Заполните все поля!'; return; }
+        if (username.length < 3) { regMessage.textContent = 'Логин должен быть не менее 3 символов'; return; }
+        if (password.length < 4) { regMessage.textContent = 'Пароль должен быть не менее 4 символов'; return; }
+        if (password !== passwordConfirm) { regMessage.textContent = 'Пароли не совпадают!'; return; }
         const passwordHash = hashPassword(password);
         database.ref('users/' + username).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                regMessage.textContent = 'Пользователь уже существует!';
-                return;
-            }
+            if (snapshot.exists()) { regMessage.textContent = 'Пользователь уже существует!'; return; }
             database.ref('users/' + username).set({
-                nickname: username,
-                passwordHash: passwordHash,
-                uid: username + '_' + Date.now(),
-                lastSeen: Date.now(),
-                online: false
+                nickname: username, passwordHash: passwordHash, uid: username + '_' + Date.now(), lastSeen: Date.now(), online: false
             }).then(() => {
                 regMessage.style.color = '#00cc66';
                 regMessage.textContent = '✅ Регистрация успешна!';
                 setTimeout(() => showLoginScreen(), 1500);
-            }).catch(err => {
-                regMessage.textContent = 'Ошибка: ' + err.message;
-            });
+            }).catch(err => { regMessage.textContent = 'Ошибка: ' + err.message; });
         });
     }
     
     function login() {
         const username = loginUsername.value.trim().toLowerCase();
         const password = loginPassword.value;
-        if (!username || !password) {
-            authMessage.textContent = 'Введите логин и пароль!';
-            return;
-        }
+        if (!username || !password) { authMessage.textContent = 'Введите логин и пароль!'; return; }
         const passwordHash = hashPassword(password);
-        database.ref('users/' + username).once('value', (snapshot) => {
-            if (!snapshot.exists()) {
+        database.ref('users/' + username).once('value', async (snapshot) => {
+            if (!snapshot.exists() || snapshot.val().passwordHash !== passwordHash) {
                 authMessage.textContent = 'Неверный логин или пароль!';
                 return;
             }
-            const userData = snapshot.val();
-            if (userData.passwordHash !== passwordHash) {
-                authMessage.textContent = 'Неверный логин или пароль!';
-                return;
-            }
-            currentUser = {
-                nickname: username,
-                uid: userData.uid || username,
-                passwordHash: passwordHash
-            };
+            currentUser = { nickname: username, uid: snapshot.val().uid || username, passwordHash: passwordHash };
             localStorage.setItem('svpUser', JSON.stringify(currentUser));
             localStorage.setItem('svpPasswordHash', passwordHash);
             authScreen.classList.add('hidden');
@@ -1192,22 +1452,14 @@
             mainChat.style.display = 'flex';
             userNameText.textContent = currentUser.nickname;
             
-            // Инициализируем слушатели активности
-            initActivityListeners();
+            // Загружаем аватарку пользователя
+            await updateCurrentUserAvatar();
             
-            // Начинаем с ONLINE (так как пользователь только что зашёл)
+            initActivityListeners();
             isAppActive = true;
             lastActivityTime = Date.now();
             updateFirebaseOnlineStatus(true);
-            
-            // Настраиваем onDisconnect
-            database.ref('users/' + currentUser.nickname).onDisconnect().update({
-                online: false,
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            });
-            
-            database.ref('users/' + currentUser.nickname + '/lastSeen').set(Date.now());
-            
+            database.ref('users/' + currentUser.nickname).onDisconnect().update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
             loadUserChats();
             updateImageCountDisplay();
         });
@@ -1218,9 +1470,6 @@
         registerScreen.style.display = 'flex';
         authMessage.textContent = '';
         regMessage.textContent = '';
-        regUsername.value = '';
-        regPassword.value = '';
-        regPasswordConfirm.value = '';
     }
     
     function showLoginScreen() {
@@ -1228,65 +1477,31 @@
         authScreen.classList.remove('hidden');
         authMessage.textContent = '';
         regMessage.textContent = '';
-        loginUsername.value = '';
-        loginPassword.value = '';
     }
     
     function logout() {
-        // Устанавливаем статус оффлайн перед выходом
-        if (currentUser) {
-            updateFirebaseOnlineStatus(false);
-        }
-        
-        // Останавливаем все слушатели
+        if (currentUser) updateFirebaseOnlineStatus(false);
         stopActivityListeners();
-        
-        // Отписываемся от всех статусов
-        onlineListeners.forEach((ref, username) => {
-            ref.off('value');
-        });
+        onlineListeners.forEach((ref) => ref.off('value'));
         onlineListeners.clear();
-        
         detachMessagesListener();
         detachChatsListener();
-        
         localStorage.removeItem('svpUser');
         localStorage.removeItem('svpPasswordHash');
         currentUser = null;
         currentChatWith = null;
-        isAppActive = true;
-        isUserOnline = false;
-        
         mainChat.style.display = 'none';
         authScreen.classList.remove('hidden');
-        registerScreen.style.display = 'none';
         loginUsername.value = '';
         loginPassword.value = '';
-        authMessage.textContent = '';
-        
-        chatsContainer.innerHTML = '';
-        clearMessages();
-        messagesContainer.classList.remove('active');
-        noChatSelected.style.display = 'flex';
-        inputArea.style.display = 'none';
-        currentChatWith = null;
-        
-        if (chatPane) chatPane.classList.add('active-pane');
-        if (settingsPane) settingsPane.classList.remove('active-pane');
-        if (tabChatBtn) tabChatBtn.classList.add('active');
-        if (tabSettingsBtn) tabSettingsBtn.classList.remove('active');
+        switchTab('contacts');
+        clearChatDisplay();
     }
     
     function changePassword() {
         const newPassword = newPasswordInput.value.trim();
-        if (!newPassword) {
-            statusSpan.innerHTML = '⚠️ Введите новый пароль';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
-            return;
-        }
-        if (newPassword.length < 4) {
+        if (!newPassword || newPassword.length < 4) {
             statusSpan.innerHTML = '⚠️ Пароль должен быть не менее 4 символов';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
             return;
         }
         const newPasswordHash = hashPassword(newPassword);
@@ -1296,87 +1511,66 @@
             statusSpan.innerHTML = '✅ Пароль изменён!';
             newPasswordInput.value = '';
             setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 3000);
-        }).catch(err => {
-            statusSpan.innerHTML = '❌ Ошибка';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 3000);
-        });
+        }).catch(() => statusSpan.innerHTML = '❌ Ошибка');
     }
-    
-    if (changePasswordBtn) changePasswordBtn.onclick = changePassword;
     
     function changeNickname() {
         let newNickname = newNicknameInput.value.trim().toLowerCase();
-        if (newNickname === "") {
-            statusSpan.innerHTML = '⚠️ Введите новый никнейм';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
-            return;
-        }
-        if (newNickname.length < 3) {
+        if (!newNickname || newNickname.length < 3) {
             statusSpan.innerHTML = '⚠️ Никнейм должен быть не менее 3 символов';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
             return;
         }
         if (newNickname === currentUser.nickname) {
             statusSpan.innerHTML = '⚠️ Это ваш текущий никнейм';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
             return;
         }
-        database.ref('users/' + newNickname).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                statusSpan.innerHTML = '⚠️ Никнейм уже занят';
-                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
-                return;
-            }
+        database.ref('users/' + newNickname).once('value', async (snapshot) => {
+            if (snapshot.exists()) { statusSpan.innerHTML = '⚠️ Никнейм уже занят'; return; }
             const oldNickname = currentUser.nickname;
             const passwordHash = currentUser.passwordHash;
-            database.ref('users/' + newNickname).set({
-                nickname: newNickname,
-                passwordHash: passwordHash,
-                uid: currentUser.uid,
-                online: isUserOnline,
-                lastSeen: Date.now()
+            const oldAvatar = await loadUserAvatar(oldNickname);
+            
+            await database.ref('users/' + newNickname).set({
+                nickname: newNickname, passwordHash: passwordHash, uid: currentUser.uid, 
+                online: isUserOnline, lastSeen: Date.now(), avatar: oldAvatar
             });
-            database.ref('userChats/' + oldNickname).once('value', (snapshot) => {
-                const chats = snapshot.val();
-                if (chats) {
-                    Object.keys(chats).forEach(chatWith => {
-                        database.ref('userChats/' + newNickname + '/' + chatWith).set(chats[chatWith]);
-                        database.ref('userChats/' + chatWith + '/' + newNickname).set(chats[chatWith]);
-                        database.ref('userChats/' + chatWith + '/' + oldNickname).remove();
-                    });
+            
+            const userChatsSnapshot = await database.ref('userChats/' + oldNickname).once('value');
+            const chats = userChatsSnapshot.val();
+            if (chats) {
+                for (const chatWith of Object.keys(chats)) {
+                    await database.ref('userChats/' + newNickname + '/' + chatWith).set(chats[chatWith]);
+                    const chatData = await database.ref('userChats/' + chatWith + '/' + oldNickname).once('value');
+                    if (chatData.exists()) {
+                        await database.ref('userChats/' + chatWith + '/' + newNickname).set(chatData.val());
+                        await database.ref('userChats/' + chatWith + '/' + oldNickname).remove();
+                    }
                 }
-                database.ref('userChats/' + oldNickname).remove();
-            });
-            database.ref('imageLimits/' + oldNickname).once('value', (snapshot) => {
-                const limits = snapshot.val();
-                if (limits) {
-                    database.ref('imageLimits/' + newNickname).set(limits);
-                    database.ref('imageLimits/' + oldNickname).remove();
-                }
-            });
-            setTimeout(() => {
-                currentUser.nickname = newNickname;
-                localStorage.setItem('svpUser', JSON.stringify(currentUser));
-                userNameText.textContent = currentUser.nickname;
-                statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname;
-                newNicknameInput.value = '';
-                detachMessagesListener();
-                detachChatsListener();
-                currentChatWith = null;
-                clearMessages();
-                messagesContainer.classList.remove('active');
-                noChatSelected.style.display = 'flex';
-                inputArea.style.display = 'none';
-                loadUserChats();
-                updateImageCountDisplay();
-                database.ref('users/' + oldNickname).remove();
-                statusSpan.innerHTML = '✅ Никнейм изменён';
-                setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 3000);
-            }, 1000);
+                await database.ref('userChats/' + oldNickname).remove();
+            }
+            
+            const limitsSnapshot = await database.ref('imageLimits/' + oldNickname).once('value');
+            if (limitsSnapshot.val()) {
+                await database.ref('imageLimits/' + newNickname).set(limitsSnapshot.val());
+                await database.ref('imageLimits/' + oldNickname).remove();
+            }
+            
+            currentUser.nickname = newNickname;
+            localStorage.setItem('svpUser', JSON.stringify(currentUser));
+            userNameText.textContent = currentUser.nickname;
+            newNicknameInput.value = '';
+            detachMessagesListener();
+            detachChatsListener();
+            currentChatWith = null;
+            clearChatDisplay();
+            loadUserChats();
+            updateImageCountDisplay();
+            await database.ref('users/' + oldNickname).remove();
+            await updateCurrentUserAvatar();
+            statusSpan.innerHTML = '✅ Никнейм изменён';
+            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 3000);
         });
     }
-    
-    if (changeNicknameBtn) changeNicknameBtn.onclick = changeNickname;
     
     function deleteChat(chatWithUser) {
         if (!confirm(`Удалить чат с ${chatWithUser}?`)) return;
@@ -1386,16 +1580,23 @@
         database.ref('userChats/' + chatWithUser + '/' + currentUser.nickname).remove();
         unwatchUserOnlineStatus(chatWithUser);
         if (currentChatWith === chatWithUser) {
-            currentChatWith = null;
-            clearMessages();
-            messagesContainer.classList.remove('active');
-            noChatSelected.style.display = 'flex';
-            inputArea.style.display = 'none';
-            const chatHeader = document.querySelector('.chat-header-info');
-            if (chatHeader) chatHeader.remove();
+            clearChatDisplay();
         }
         statusSpan.innerHTML = '🗑️ Чат удалён';
         setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+    }
+    
+    function clearChatDisplay() {
+        currentChatWith = null;
+        detachMessagesListener();
+        messagesContainer.innerHTML = '';
+        messageElementsMap.clear();
+        messagesContainer.style.display = 'none';
+        inputArea.style.display = 'none';
+        noChatSelectedInChat.style.display = 'flex';
+        chatHeaderPlaceholder.innerHTML = '';
+        if (replyPreview) replyPreview.style.display = 'none';
+        currentReplyTo = null;
     }
     
     function getTime() {
@@ -1424,213 +1625,143 @@
     
     function detachChatsListener() {
         if (currentChatsListener && currentUser) {
-            const userChatsRef = database.ref('userChats/' + currentUser.nickname);
-            userChatsRef.off('value', currentChatsListener);
+            database.ref('userChats/' + currentUser.nickname).off('value', currentChatsListener);
             currentChatsListener = null;
         }
     }
     
-    function clearMessages() {
-        messagesContainer.innerHTML = '';
-        messageElementsMap.clear();
-    }
-    
     function scrollToBottom() {
-        setTimeout(() => {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
+        setTimeout(() => { messagesContainer.scrollTop = messagesContainer.scrollHeight; }, 100);
     }
     
-    function addMessageToDOM(msg, msgKey) {
+    async function addMessageToDOM(msg, msgKey) {
         if (messageElementsMap.has(msgKey)) return;
         const isMy = (msg.sender === currentUser.nickname);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper' + (isMy ? ' my-message-wrapper' : '');
+        wrapper.setAttribute('data-sender', msg.sender);
+        
+        // Аватарка
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        const avatarData = await loadUserAvatar(msg.sender);
+        avatarDiv.innerHTML = getAvatarHtml(avatarData);
+        
+        // Контент сообщения
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message' + (isMy ? ' my-message' : '');
         messageDiv.setAttribute('data-key', msgKey);
+        
         let content = '';
+        if (msg.replyTo) {
+            const replyText = msg.replyTo.text ? (msg.replyTo.text.length > 40 ? msg.replyTo.text.slice(0, 37) + '...' : msg.replyTo.text) : '📷 Изображение';
+            content += `<div class="reply-indicator"><span>↩️ Ответ для ${escapeHtml(msg.replyTo.sender)}:</span> ${escapeHtml(replyText)}</div>`;
+        }
         if (!isMy) content += `<div class="message-sender">${escapeHtml(msg.sender)}</div>`;
         if (msg.type === 'image' && msg.imageData) {
             const safeData = msg.imageData.replace(/'/g, "\\'");
-            content += `<div class="image-message"><img src="${msg.imageData}" class="image-preview" onclick="showFullscreenImage('${safeData}')" alt="Изображение"></div>`;
+            content += `<div class="image-message"><img src="${msg.imageData}" class="image-preview" onclick="window.showFullscreenImage('${safeData}')" alt="Изображение"></div>`;
         } else {
             content += `<div class="message-text">${escapeHtml(msg.text || '')}</div>`;
         }
         content += `<div class="message-time">${msg.time}</div>`;
         messageDiv.innerHTML = content;
+        contentDiv.appendChild(messageDiv);
+        
+        if (isMy) {
+            wrapper.appendChild(contentDiv);
+            wrapper.appendChild(avatarDiv);
+        } else {
+            wrapper.appendChild(avatarDiv);
+            wrapper.appendChild(contentDiv);
+        }
+        
+        // Вставка в правильном порядке
         let inserted = false;
-        const existing = messagesContainer.querySelectorAll('.message');
+        const existing = messagesContainer.querySelectorAll('.message-wrapper');
         for (let i = 0; i < existing.length; i++) {
-            const existingKey = existing[i].getAttribute('data-key');
-            if (existingKey && msgKey < existingKey) {
-                messagesContainer.insertBefore(messageDiv, existing[i]);
+            const existingMsgDiv = existing[i].querySelector('.message');
+            if (existingMsgDiv && existingMsgDiv.getAttribute('data-key') && msgKey < existingMsgDiv.getAttribute('data-key')) {
+                messagesContainer.insertBefore(wrapper, existing[i]);
                 inserted = true;
                 break;
             }
         }
-        if (!inserted) messagesContainer.appendChild(messageDiv);
-        messageElementsMap.set(msgKey, messageDiv);
-        return messageDiv;
-    }
-    
-    // Автовход
-    const savedUser = localStorage.getItem('svpUser');
-    const savedPasswordHash = localStorage.getItem('svpPasswordHash');
-    if (savedUser && savedPasswordHash) {
-        try {
-            const user = JSON.parse(savedUser);
-            database.ref('users/' + user.nickname).once('value', (snapshot) => {
-                if (snapshot.exists() && snapshot.val().passwordHash === savedPasswordHash) {
-                    currentUser = user;
-                    authScreen.classList.add('hidden');
-                    registerScreen.style.display = 'none';
-                    mainChat.style.display = 'flex';
-                    userNameText.textContent = currentUser.nickname;
-                    
-                    initActivityListeners();
-                    
-                    isAppActive = true;
-                    lastActivityTime = Date.now();
-                    updateFirebaseOnlineStatus(true);
-                    
-                    database.ref('users/' + currentUser.nickname).onDisconnect().update({
-                        online: false,
-                        lastSeen: firebase.database.ServerValue.TIMESTAMP
-                    });
-                    
-                    database.ref('users/' + currentUser.nickname + '/lastSeen').set(Date.now());
-                    loadUserChats();
-                    updateImageCountDisplay();
-                } else {
-                    logout();
-                }
-            });
-        } catch(e) {
-            logout();
+        if (!inserted) messagesContainer.appendChild(wrapper);
+        messageElementsMap.set(msgKey, wrapper);
+        
+        if (!isMy) {
+            makeMessageSwipeable(messageDiv, msg);
         }
+        return wrapper;
     }
     
-    if (loginBtn) loginBtn.onclick = login;
-    if (showRegisterBtn) showRegisterBtn.onclick = showRegisterScreen;
-    if (showLoginBtn) showLoginBtn.onclick = showLoginScreen;
-    if (registerBtn) registerBtn.onclick = register;
-    if (logoutSettingsBtn) logoutSettingsBtn.onclick = logout;
-    
-    loginUsername.onkeypress = (e) => { if (e.key === 'Enter') login(); };
-    loginPassword.onkeypress = (e) => { if (e.key === 'Enter') login(); };
-    
-    function switchTab(tabId) {
-        if (tabId === 'chat') {
-            chatPane.classList.add('active-pane');
-            settingsPane.classList.remove('active-pane');
-            tabChatBtn.classList.add('active');
-            tabSettingsBtn.classList.remove('active');
-            updateActivity(); // Обновляем активность при переключении вкладки
-        } else {
-            settingsPane.classList.add('active-pane');
-            chatPane.classList.remove('active-pane');
-            tabSettingsBtn.classList.add('active');
-            tabChatBtn.classList.remove('active');
-            updateActivity(); // Обновляем активность при переключении вкладки
-        }
-    }
-    
-    if (tabChatBtn) tabChatBtn.onclick = () => switchTab('chat');
-    if (tabSettingsBtn) tabSettingsBtn.onclick = () => switchTab('settings');
-    
-    searchBtn.onclick = () => {
-        const query = searchInput.value.trim().toLowerCase();
-        if (!query) return;
-        updateActivity(); // Обновляем активность при поиске
-        database.ref('users').once('value', (snapshot) => {
-            let found = null;
-            snapshot.forEach((child) => {
-                const userData = child.val();
-                if (userData.nickname && userData.nickname.toLowerCase() === query) found = userData;
-            });
-            if (found && found.nickname !== currentUser.nickname) {
-                searchUserName.textContent = found.nickname;
-                searchResult.classList.add('show');
-                startChatBtn.onclick = () => {
-                    openChatWith(found.nickname);
-                    searchResult.classList.remove('show');
-                    searchInput.value = '';
-                    switchTab('chat');
-                };
-            } else if (found && found.nickname === currentUser.nickname) {
-                searchUserName.textContent = '❌ Это вы сами';
-                searchResult.classList.add('show');
-                setTimeout(() => searchResult.classList.remove('show'), 2000);
-            } else {
-                searchUserName.textContent = '❌ Пользователь не найден';
-                searchResult.classList.add('show');
-                setTimeout(() => searchResult.classList.remove('show'), 2000);
-            }
-        });
-    };
-    
-    function openChatWith(otherUser) {
-        if (otherUser === currentUser.nickname) {
-            statusSpan.innerHTML = '⚠️ Нельзя писать самому себе';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
+    function sendMessage() {
+        if (!currentChatWith) {
+            statusSpan.innerHTML = '⚠️ Выберите чат';
             return;
         }
-        updateActivity(); // Обновляем активность при открытии чата
-        detachMessagesListener();
-        currentChatWith = otherUser;
-        noChatSelected.style.display = 'none';
-        messagesContainer.classList.add('active');
-        inputArea.style.display = 'block';
-        clearMessages();
+        const text = messageInput.value.trim();
+        if (text === '' && !currentReplyTo) return;
         
-        const oldHeader = document.querySelector('.chat-header-info');
-        if (oldHeader) oldHeader.remove();
+        updateActivity();
         
-        database.ref('users/' + otherUser + '/online').once('value', (snapshot) => {
-            const isOnline = snapshot.val() === true;
-            updateChatHeaderStatus(otherUser, isOnline);
+        const chatId = getChatId(currentUser.nickname, currentChatWith);
+        const message = {
+            sender: currentUser.nickname, receiver: currentChatWith, type: 'text',
+            text: text || '🔁', time: getTime(), timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        if (currentReplyTo) {
+            message.replyTo = {
+                messageId: currentReplyTo.messageId || null,
+                sender: currentReplyTo.sender,
+                text: currentReplyTo.type === 'image' ? '📷 Изображение' : (currentReplyTo.text || ''),
+                type: currentReplyTo.type
+            };
+        }
+        
+        const replyToSave = currentReplyTo;
+        const messageText = text;
+        cancelReply();
+        
+        database.ref('messages/' + chatId).push(message).then(() => {
+            let lastMsgText = messageText;
+            if (replyToSave && !messageText) lastMsgText = `↩️ Ответ для ${replyToSave.sender}`;
+            if (!lastMsgText) lastMsgText = '🔁';
+            const updateData = {
+                lastMessage: lastMsgText.length > 30 ? lastMsgText.slice(0, 27) + '...' : lastMsgText,
+                lastTime: firebase.database.ServerValue.TIMESTAMP
+            };
+            database.ref('userChats/' + currentUser.nickname + '/' + currentChatWith).update({...updateData, unread: 0});
+            database.ref('userChats/' + currentChatWith + '/' + currentUser.nickname).update({...updateData, unread: firebase.database.ServerValue.increment(1)});
+        }).catch(() => {
+            statusSpan.innerHTML = '❌ Ошибка';
+            messageInput.value = text;
         });
-        
-        watchUserOnlineStatus(otherUser, (isOnline) => {
-            if (currentChatWith === otherUser) {
-                updateChatHeaderStatus(otherUser, isOnline);
-            }
-            updateChatListStatus(otherUser, isOnline);
-        });
-        
-        document.querySelectorAll('.chat-tab').forEach(tab => {
-            const user = tab.getAttribute('data-user');
-            if (user === otherUser) {
-                tab.classList.add('active');
-                const unreadSpan = tab.querySelector('.chat-tab-unread');
-                if (unreadSpan) unreadSpan.remove();
-            } else {
-                tab.classList.remove('active');
-            }
-        });
-        
-        database.ref('userChats/' + currentUser.nickname + '/' + otherUser + '/unread').set(0);
-        loadMessages(otherUser);
+        messageInput.value = '';
     }
     
     function loadMessages(withUser) {
         const chatId = getChatId(currentUser.nickname, withUser);
         currentMessagesRef = database.ref('messages/' + chatId);
         isInitialLoad = true;
-        currentMessagesRef.limitToLast(50).once('value', (snapshot) => {
+        currentMessagesRef.limitToLast(50).once('value', async (snapshot) => {
             const messages = [];
-            snapshot.forEach((childSnapshot) => {
-                messages.push({ key: childSnapshot.key, ...childSnapshot.val() });
-            });
+            snapshot.forEach((child) => messages.push({ key: child.key, ...child.val() }));
             messages.sort((a, b) => a.key.localeCompare(b.key));
-            messages.forEach(msg => addMessageToDOM(msg, msg.key));
+            for (const msg of messages) {
+                await addMessageToDOM(msg, msg.key);
+            }
             isInitialLoad = false;
             scrollToBottom();
         });
-        currentMessagesListener = currentMessagesRef.on('child_added', (snapshot) => {
+        currentMessagesListener = currentMessagesRef.on('child_added', async (snapshot) => {
             const msg = snapshot.val();
-            const msgKey = snapshot.key;
-            if (messageElementsMap.has(msgKey)) return;
-            addMessageToDOM(msg, msgKey);
+            if (messageElementsMap.has(snapshot.key)) return;
+            await addMessageToDOM(msg, snapshot.key);
             if (msg.sender !== currentUser.nickname && currentChatWith === withUser && !isInitialLoad) {
                 database.ref('userChats/' + currentUser.nickname + '/' + withUser + '/unread').set(0);
                 try {
@@ -1651,96 +1782,122 @@
         });
     }
     
-    function loadUserChats() {
+    async function loadUserChats() {
         detachChatsListener();
         const userChatsRef = database.ref('userChats/' + currentUser.nickname);
-        currentChatsListener = userChatsRef.on('value', (snapshot) => {
+        currentChatsListener = userChatsRef.on('value', async (snapshot) => {
             const chats = [];
             snapshot.forEach((child) => {
                 const data = child.val();
                 chats.push({
-                    withUser: child.key,
-                    lastMessage: data.lastMessage || '',
-                    lastTime: data.lastTime || 0,
-                    unread: data.unread || 0
+                    withUser: child.key, lastMessage: data.lastMessage || '', lastTime: data.lastTime || 0, unread: data.unread || 0
                 });
             });
             chats.sort((a, b) => (b.lastTime || 0) - (a.lastTime || 0));
             if (chats.length === 0) {
-                chatsContainer.innerHTML = '<div style="padding: 10px; text-align: center; opacity: 0.7; font-size: 11px; color: #aa6f3c;">😔 Нет диалогов<br>Найдите пользователя в поиске</div>';
+                chatsContainer.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.7; font-size: 12px; color: #aa6f3c;">😔 Нет диалогов<br>Найдите пользователя в поиске</div>';
                 return;
             }
-            chatsContainer.innerHTML = chats.map(chat => `
-                <div class="chat-tab ${currentChatWith === chat.withUser ? 'active' : ''}" data-user="${chat.withUser}">
-                    <div class="chat-tab-left" onclick="event.stopPropagation(); openChatWith('${chat.withUser}')">
-                        <div class="chat-tab-name">
-                            <span class="offline-dot" id="status-dot-${chat.withUser}"></span>
-                            💬 ${escapeHtml(chat.withUser)}
-                        </div>
-                        ${chat.unread > 0 ? `<span class="chat-tab-unread">${chat.unread}</span>` : ''}
-                    </div>
-                    <button class="delete-chat-btn" onclick="event.stopPropagation(); deleteChat('${chat.withUser}')">🗑️</button>
-                </div>
-            `).join('');
             
-            chats.forEach(chat => {
-                watchUserOnlineStatus(chat.withUser, (isOnline) => {
-                    updateChatListStatus(chat.withUser, isOnline);
-                });
-            });
+            let html = '';
+            for (const chat of chats) {
+                const avatarData = await loadUserAvatar(chat.withUser);
+                const avatarHtml = getAvatarHtml(avatarData);
+                html += `
+                    <div class="chat-tab ${currentChatWith === chat.withUser ? 'active' : ''}" data-user="${chat.withUser}">
+                        <div class="chat-tab-left" onclick="window.openChat('${chat.withUser}')">
+                            <div class="chat-tab-avatar">${avatarHtml}</div>
+                            <div class="chat-tab-info">
+                                <div class="chat-tab-name">
+                                    <span class="offline-dot"></span>
+                                    ${escapeHtml(chat.withUser)}
+                                </div>
+                                <div class="chat-tab-lastmsg">${escapeHtml(chat.lastMessage.length > 40 ? chat.lastMessage.slice(0, 37) + '...' : chat.lastMessage)}</div>
+                            </div>
+                            ${chat.unread > 0 ? `<span class="chat-tab-unread">${chat.unread}</span>` : ''}
+                        </div>
+                        <button class="delete-chat-btn" onclick="event.stopPropagation(); deleteChat('${chat.withUser}')">🗑️</button>
+                    </div>
+                `;
+            }
+            chatsContainer.innerHTML = html;
+            
+            for (const chat of chats) {
+                watchUserOnlineStatus(chat.withUser, (isOnline) => updateChatListStatus(chat.withUser, isOnline));
+            }
         });
     }
     
-    function sendMessage() {
-        if (!currentChatWith) {
-            statusSpan.innerHTML = '⚠️ Выберите чат';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 1500);
+    async function openChat(otherUser) {
+        if (otherUser === currentUser.nickname) {
+            statusSpan.innerHTML = '⚠️ Нельзя писать самому себе';
             return;
         }
-        const text = messageInput.value.trim();
-        if (text === '') return;
+        updateActivity();
+        detachMessagesListener();
+        currentChatWith = otherUser;
         
-        updateActivity(); // Обновляем активность при отправке сообщения
+        noChatSelectedInChat.style.display = 'none';
+        messagesContainer.style.display = 'block';
+        inputArea.style.display = 'block';
+        messagesContainer.innerHTML = '';
+        messageElementsMap.clear();
         
-        const chatId = getChatId(currentUser.nickname, currentChatWith);
-        const message = {
-            sender: currentUser.nickname,
-            receiver: currentChatWith,
-            type: 'text',
-            text: text,
-            time: getTime(),
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-        messageInput.value = '';
-        database.ref('messages/' + chatId).push(message).then(() => {
-            const updateData = {
-                lastMessage: text.length > 30 ? text.slice(0, 27) + '...' : text,
-                lastTime: firebase.database.ServerValue.TIMESTAMP
-            };
-            database.ref('userChats/' + currentUser.nickname + '/' + currentChatWith).update({...updateData, unread: 0});
-            database.ref('userChats/' + currentChatWith + '/' + currentUser.nickname).update({...updateData, unread: firebase.database.ServerValue.increment(1)});
-        }).catch(err => {
-            statusSpan.innerHTML = '❌ Ошибка';
-            setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
-            messageInput.value = text;
+        const snapshot = await database.ref('users/' + otherUser + '/online').once('value');
+        await updateChatHeaderStatus(otherUser, snapshot.val() === true);
+        
+        watchUserOnlineStatus(otherUser, async (isOnline) => {
+            if (currentChatWith === otherUser) await updateChatHeaderStatus(otherUser, isOnline);
+            updateChatListStatus(otherUser, isOnline);
         });
+        
+        document.querySelectorAll('.chat-tab').forEach(tab => {
+            if (tab.getAttribute('data-user') === otherUser) {
+                tab.classList.add('active');
+                const unreadSpan = tab.querySelector('.chat-tab-unread');
+                if (unreadSpan) unreadSpan.remove();
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+        
+        database.ref('userChats/' + currentUser.nickname + '/' + otherUser + '/unread').set(0);
+        loadMessages(otherUser);
+        switchTab('chat');
     }
     
-    sendBtn.onclick = sendMessage;
-    messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-    if (imageUploadBtn) imageUploadBtn.onclick = sendImage;
-    
-    database.ref('.info/connected').on('value', (snap) => {
-        if (snap.val() === true && currentUser && isAppActive && !document.hidden) {
-            updateFirebaseOnlineStatus(true);
+    function switchTab(tabId) {
+        if (tabId === 'contacts') {
+            contactsPane.classList.add('active-pane');
+            chatPane.classList.remove('active-pane');
+            settingsPane.classList.remove('active-pane');
+            tabContactsBtn.classList.add('active');
+            tabChatBtn.classList.remove('active');
+            tabSettingsBtn.classList.remove('active');
+        } else if (tabId === 'chat') {
+            contactsPane.classList.remove('active-pane');
+            chatPane.classList.add('active-pane');
+            settingsPane.classList.remove('active-pane');
+            tabContactsBtn.classList.remove('active');
+            tabChatBtn.classList.add('active');
+            tabSettingsBtn.classList.remove('active');
+        } else if (tabId === 'settings') {
+            contactsPane.classList.remove('active-pane');
+            chatPane.classList.remove('active-pane');
+            settingsPane.classList.add('active-pane');
+            tabContactsBtn.classList.remove('active');
+            tabChatBtn.classList.remove('active');
+            tabSettingsBtn.classList.add('active');
+            updateImageCountDisplay();
+            updateCurrentUserAvatar();
         }
-    });
+        updateActivity();
+    }
     
     function hashPassword(password) {
         let hash = 0;
         for (let i = 0; i < password.length; i++) {
-            const char = password.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
+            hash = ((hash << 5) - hash) + password.charCodeAt(i);
             hash = hash & hash;
         }
         return hash.toString();
@@ -1751,13 +1908,96 @@
         return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
     }
     
-    window.openChatWith = openChatWith;
+    // Привязка обработчиков
+    if (sendBtn) sendBtn.onclick = sendMessage;
+    if (messageInput) messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    if (imageUploadBtn) imageUploadBtn.onclick = sendImage;
+    if (changePasswordBtn) changePasswordBtn.onclick = changePassword;
+    if (changeNicknameBtn) changeNicknameBtn.onclick = changeNickname;
+    if (loginBtn) loginBtn.onclick = login;
+    if (showRegisterBtn) showRegisterBtn.onclick = showRegisterScreen;
+    if (showLoginBtn) showLoginBtn.onclick = showLoginScreen;
+    if (registerBtn) registerBtn.onclick = register;
+    if (logoutSettingsBtn) logoutSettingsBtn.onclick = logout;
+    if (cancelReplyBtn) cancelReplyBtn.onclick = cancelReply;
+    if (tabContactsBtn) tabContactsBtn.onclick = () => switchTab('contacts');
+    if (tabChatBtn) tabChatBtn.onclick = () => switchTab('chat');
+    if (tabSettingsBtn) tabSettingsBtn.onclick = () => switchTab('settings');
+    if (goToContactsBtn) goToContactsBtn.onclick = () => switchTab('contacts');
+    if (changeAvatarBtn) changeAvatarBtn.onclick = () => avatarUpload.click();
+    if (removeAvatarBtn) removeAvatarBtn.onclick = removeAvatar;
+    if (avatarUpload) avatarUpload.onchange = changeAvatar;
+    if (userAvatarBtn) userAvatarBtn.onclick = () => switchTab('settings');
+    
+    searchBtn.onclick = () => {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) return;
+        updateActivity();
+        database.ref('users').once('value', (snapshot) => {
+            let found = null;
+            snapshot.forEach((child) => {
+                if (child.val().nickname && child.val().nickname.toLowerCase() === query) found = child.val();
+            });
+            if (found && found.nickname !== currentUser.nickname) {
+                searchUserName.textContent = found.nickname;
+                searchResult.classList.add('show');
+                startChatBtn.onclick = () => {
+                    openChat(found.nickname);
+                    searchResult.classList.remove('show');
+                    searchInput.value = '';
+                };
+            } else if (found && found.nickname === currentUser.nickname) {
+                searchUserName.textContent = '❌ Это вы сами';
+                searchResult.classList.add('show');
+                setTimeout(() => searchResult.classList.remove('show'), 2000);
+            } else {
+                searchUserName.textContent = '❌ Пользователь не найден';
+                searchResult.classList.add('show');
+                setTimeout(() => searchResult.classList.remove('show'), 2000);
+            }
+        });
+    };
+    
+    database.ref('.info/connected').on('value', (snap) => {
+        if (snap.val() === true && currentUser && isAppActive && !document.hidden) {
+            updateFirebaseOnlineStatus(true);
+        }
+    });
+    
+    // Автовход
+    const savedUser = localStorage.getItem('svpUser');
+    const savedPasswordHash = localStorage.getItem('svpPasswordHash');
+    if (savedUser && savedPasswordHash) {
+        try {
+            const user = JSON.parse(savedUser);
+            database.ref('users/' + user.nickname).once('value', async (snapshot) => {
+                if (snapshot.exists() && snapshot.val().passwordHash === savedPasswordHash) {
+                    currentUser = user;
+                    authScreen.classList.add('hidden');
+                    mainChat.style.display = 'flex';
+                    userNameText.textContent = currentUser.nickname;
+                    await updateCurrentUserAvatar();
+                    initActivityListeners();
+                    isAppActive = true;
+                    lastActivityTime = Date.now();
+                    updateFirebaseOnlineStatus(true);
+                    database.ref('users/' + currentUser.nickname).onDisconnect().update({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+                    loadUserChats();
+                    updateImageCountDisplay();
+                } else { logout(); }
+            });
+        } catch(e) { logout(); }
+    }
+    
+    loginUsername.onkeypress = (e) => { if (e.key === 'Enter') login(); };
+    loginPassword.onkeypress = (e) => { if (e.key === 'Enter') login(); };
+    
+    window.openChat = openChat;
     window.deleteChat = deleteChat;
     window.showFullscreenImage = showFullscreenImage;
     
-    console.log('✅ Чат готов! Статус "в сети" работает по ДЕЙСТВИЯМ пользователя');
-    console.log('📌 При сворачивании вкладки и бездействии >5 секунд - статус OFFLINE');
-    console.log('📌 Любое действие (клик, скролл, ввод текста) - возвращает ONLINE');
+    console.log('✅ Обновлённый интерфейс с АВАТАРКАМИ!');
+    console.log('👉 Загрузите аватарку в настройках');
 </script>
 </body>
 </html>
