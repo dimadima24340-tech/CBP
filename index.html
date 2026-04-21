@@ -62,12 +62,12 @@
             background: #0f0f0f;
             border-bottom: 2px solid #ff5e00;
         }
-        /* Стили для сообщений с аватарками */
         .message-wrapper {
             display: flex;
             align-items: flex-start;
             gap: 8px;
             margin-bottom: 8px;
+            position: relative;
         }
         .message-wrapper.my-message-wrapper {
             justify-content: flex-end;
@@ -688,6 +688,82 @@
             gap: 5px;
         }
         
+        /* ===== СТИЛИ ДЛЯ РЕАКЦИЙ ===== */
+        .reactions-picker {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #1a1a1a;
+            border: 1px solid #ff5e00;
+            border-radius: 30px;
+            padding: 6px 12px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+        
+        .reaction-option {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.1s ease;
+            border-radius: 50%;
+        }
+        
+        .reaction-option:hover {
+            transform: scale(1.2);
+            background: #2a2a2a;
+        }
+        
+        .message-reactions {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .reaction-badge {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            border: 1px solid #333;
+        }
+        
+        .reaction-badge:hover {
+            background: #2a2a2a;
+        }
+        
+        .reaction-badge .reaction-count {
+            font-size: 10px;
+            color: #ffaa55;
+            margin-left: 2px;
+        }
+        
+        .reaction-badge.user-reacted {
+            background: #ff5e00;
+            color: #000;
+            border-color: #ff5e00;
+        }
+        
+        .reaction-badge.user-reacted .reaction-count {
+            color: #000;
+        }
+        
+        .my-message .reaction-badge.user-reacted {
+            background: #ffaa55;
+            border-color: #ffaa55;
+        }
+        
         @media (max-width: 500px) {
             .message-content {
                 max-width: calc(85% - 40px);
@@ -699,6 +775,14 @@
             .chat-tab-avatar {
                 width: 36px;
                 height: 36px;
+            }
+            .reactions-picker {
+                gap: 6px;
+                padding: 4px 10px;
+            }
+            .reaction-option {
+                font-size: 18px;
+                padding: 3px;
             }
         }
     </style>
@@ -883,7 +967,10 @@
     let heartbeatInterval = null;
     let lastActivityTime = Date.now();
     let currentReplyTo = null;
-    let userAvatarsCache = new Map(); // Кэш аватарок пользователей
+    let userAvatarsCache = new Map();
+    
+    // Доступные реакции
+    const availableReactions = ['❤️', '😭', '🔥', '👎', '🎉'];
     
     // DOM элементы
     const authScreen = document.getElementById('authScreen');
@@ -940,6 +1027,73 @@
     const userAvatarBtn = document.getElementById('userAvatarBtn');
     
     let onlineListeners = new Map();
+    
+    // === ФУНКЦИИ ДЛЯ РЕАКЦИЙ ===
+    async function addReactionToMessage(messageId, chatId, emoji) {
+        if (!currentUser) return;
+        
+        const reactionsRef = database.ref(`messageReactions/${chatId}/${messageId}`);
+        
+        try {
+            await reactionsRef.transaction((currentReactions) => {
+                if (!currentReactions) currentReactions = {};
+                
+                const userReactionKey = currentUser.nickname;
+                
+                // Если пользователь уже поставил эту реакцию - убираем её
+                if (currentReactions[userReactionKey] === emoji) {
+                    delete currentReactions[userReactionKey];
+                } else {
+                    // Иначе ставим новую реакцию (заменяем старую)
+                    currentReactions[userReactionKey] = emoji;
+                }
+                
+                return currentReactions;
+            });
+        } catch (err) {
+            console.error('Ошибка добавления реакции:', err);
+        }
+    }
+    
+    function updateReactionsDisplay(messageDiv, reactions, currentUserNick) {
+        if (!messageDiv) return;
+        
+        const existingReactionsDiv = messageDiv.querySelector('.message-reactions');
+        if (existingReactionsDiv) existingReactionsDiv.remove();
+        
+        if (!reactions || Object.keys(reactions).length === 0) return;
+        
+        // Подсчитываем количество каждой реакции
+        const reactionCounts = {};
+        const userReaction = {};
+        
+        for (const [user, emoji] of Object.entries(reactions)) {
+            if (!reactionCounts[emoji]) reactionCounts[emoji] = 0;
+            reactionCounts[emoji]++;
+            if (user === currentUserNick) {
+                userReaction[emoji] = true;
+            }
+        }
+        
+        const reactionsDiv = document.createElement('div');
+        reactionsDiv.className = 'message-reactions';
+        
+        for (const [emoji, count] of Object.entries(reactionCounts)) {
+            const badge = document.createElement('span');
+            badge.className = 'reaction-badge';
+            if (userReaction[emoji]) badge.classList.add('user-reacted');
+            badge.innerHTML = `${emoji} <span class="reaction-count">${count}</span>`;
+            badge.onclick = (e) => {
+                e.stopPropagation();
+                const messageId = messageDiv.getAttribute('data-message-id');
+                const chatId = getChatId(currentUser.nickname, currentChatWith);
+                addReactionToMessage(messageId, chatId, emoji);
+            };
+            reactionsDiv.appendChild(badge);
+        }
+        
+        messageDiv.appendChild(reactionsDiv);
+    }
     
     // === ФУНКЦИИ ДЛЯ РАБОТЫ С АВАТАРКАМИ ===
     function getDefaultAvatarHtml() {
@@ -1047,7 +1201,6 @@
             statusSpan.innerHTML = '✅ Аватарка обновлена!';
             setTimeout(() => statusSpan.innerHTML = '🟢 ONLINE • ' + currentUser.nickname, 2000);
             
-            // Обновляем аватарки в интерфейсе
             refreshAllAvatars();
         } catch (err) {
             statusSpan.innerHTML = '❌ Ошибка загрузки';
@@ -1066,7 +1219,6 @@
     }
     
     async function refreshAllAvatars() {
-        // Обновляем список чатов
         const chatTabs = document.querySelectorAll('.chat-tab');
         for (const tab of chatTabs) {
             const username = tab.getAttribute('data-user');
@@ -1083,7 +1235,6 @@
             }
         }
         
-        // Обновляем шапку чата если открыт
         if (currentChatWith) {
             const avatarData = await loadUserAvatar(currentChatWith);
             const headerAvatar = document.querySelector('.chat-header-avatar');
@@ -1096,7 +1247,6 @@
             }
         }
         
-        // Перерисовываем сообщения (обновляем аватарки)
         const messages = messagesContainer.querySelectorAll('.message-wrapper');
         for (const wrapper of messages) {
             const sender = wrapper.getAttribute('data-sender');
@@ -1132,6 +1282,42 @@
     function cancelReply() {
         currentReplyTo = null;
         replyPreview.style.display = 'none';
+    }
+    
+    function showReactionPicker(messageDiv, messageData) {
+        // Удаляем существующую панель, если есть
+        const existingPicker = messageDiv.querySelector('.reactions-picker');
+        if (existingPicker) {
+            existingPicker.remove();
+            return;
+        }
+        
+        const picker = document.createElement('div');
+        picker.className = 'reactions-picker';
+        
+        for (const emoji of availableReactions) {
+            const btn = document.createElement('button');
+            btn.className = 'reaction-option';
+            btn.textContent = emoji;
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                const chatId = getChatId(currentUser.nickname, currentChatWith);
+                await addReactionToMessage(messageData.messageId, chatId, emoji);
+                picker.remove();
+            };
+            picker.appendChild(btn);
+        }
+        
+        messageDiv.appendChild(picker);
+        
+        // Закрыть панель при клике вне
+        const closePicker = (e) => {
+            if (!picker.contains(e.target)) {
+                picker.remove();
+                document.removeEventListener('click', closePicker);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closePicker), 100);
     }
     
     function makeMessageSwipeable(messageDiv, messageData) {
@@ -1452,7 +1638,6 @@
             mainChat.style.display = 'flex';
             userNameText.textContent = currentUser.nickname;
             
-            // Загружаем аватарку пользователя
             await updateCurrentUserAvatar();
             
             initActivityListeners();
@@ -1641,18 +1826,17 @@
         wrapper.className = 'message-wrapper' + (isMy ? ' my-message-wrapper' : '');
         wrapper.setAttribute('data-sender', msg.sender);
         
-        // Аватарка
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
         const avatarData = await loadUserAvatar(msg.sender);
         avatarDiv.innerHTML = getAvatarHtml(avatarData);
         
-        // Контент сообщения
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message' + (isMy ? ' my-message' : '');
         messageDiv.setAttribute('data-key', msgKey);
+        messageDiv.setAttribute('data-message-id', msgKey);
         
         let content = '';
         if (msg.replyTo) {
@@ -1668,6 +1852,15 @@
         }
         content += `<div class="message-time">${msg.time}</div>`;
         messageDiv.innerHTML = content;
+        
+        // Загружаем реакции
+        const chatId = getChatId(currentUser.nickname, currentChatWith);
+        const reactionsSnapshot = await database.ref(`messageReactions/${chatId}/${msgKey}`).once('value');
+        const reactions = reactionsSnapshot.val();
+        if (reactions && Object.keys(reactions).length > 0) {
+            updateReactionsDisplay(messageDiv, reactions, currentUser.nickname);
+        }
+        
         contentDiv.appendChild(messageDiv);
         
         if (isMy) {
@@ -1676,6 +1869,16 @@
         } else {
             wrapper.appendChild(avatarDiv);
             wrapper.appendChild(contentDiv);
+        }
+        
+        // Клик по сообщению для вызова панели реакций (только для чужих сообщений)
+        if (!isMy) {
+            messageDiv.style.cursor = 'pointer';
+            messageDiv.onclick = (e) => {
+                e.stopPropagation();
+                showReactionPicker(messageDiv, { messageId: msgKey, sender: msg.sender, text: msg.text, type: msg.type });
+            };
+            makeMessageSwipeable(messageDiv, { messageId: msgKey, sender: msg.sender, text: msg.text, type: msg.type });
         }
         
         // Вставка в правильном порядке
@@ -1692,9 +1895,16 @@
         if (!inserted) messagesContainer.appendChild(wrapper);
         messageElementsMap.set(msgKey, wrapper);
         
-        if (!isMy) {
-            makeMessageSwipeable(messageDiv, msg);
-        }
+        // Подписываемся на обновления реакций
+        const reactionsRef = database.ref(`messageReactions/${chatId}/${msgKey}`);
+        reactionsRef.on('value', (snapshot) => {
+            const newReactions = snapshot.val();
+            const currentMessageDiv = wrapper.querySelector('.message');
+            if (currentMessageDiv) {
+                updateReactionsDisplay(currentMessageDiv, newReactions, currentUser.nickname);
+            }
+        });
+        
         return wrapper;
     }
     
@@ -1996,8 +2206,7 @@
     window.deleteChat = deleteChat;
     window.showFullscreenImage = showFullscreenImage;
     
-    console.log('✅ Обновлённый интерфейс с АВАТАРКАМИ!');
-    console.log('👉 Загрузите аватарку в настройках');
+    console.log('✅ Обновлённый интерфейс с РЕАКЦИЯМИ! Доступные реакции: ❤️ 😭 🔥 👎 🎉');
 </script>
 </body>
 </html>
