@@ -642,6 +642,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .chat-header-avatar {
             width: 36px;
@@ -688,7 +689,42 @@
             gap: 5px;
         }
         
-        /* ===== СТИЛИ ДЛЯ РЕАКЦИЙ ===== */
+        /* Стили для индикатора печати */
+        .typing-indicator-status {
+            font-size: 10px;
+            color: #ffaa55;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 94, 0, 0.15);
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+        
+        .typing-dots {
+            display: inline-flex;
+            gap: 3px;
+        }
+        
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: #ffaa55;
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+        
+        /* Стили для реакций */
         .reactions-picker {
             position: absolute;
             bottom: 100%;
@@ -755,10 +791,6 @@
             border-color: #ff5e00;
         }
         
-        .reaction-badge.user-reacted .reaction-count {
-            color: #000;
-        }
-        
         .my-message .reaction-badge.user-reacted {
             background: #ffaa55;
             border-color: #ffaa55;
@@ -783,6 +815,10 @@
             .reaction-option {
                 font-size: 18px;
                 padding: 3px;
+            }
+            .typing-indicator-status {
+                font-size: 9px;
+                margin-left: 5px;
             }
         }
     </style>
@@ -969,6 +1005,11 @@
     let currentReplyTo = null;
     let userAvatarsCache = new Map();
     
+    // Переменные для индикатора печати
+    let typingTimeout = null;
+    let isTypingCurrently = false;
+    let typingListenerRef = null;
+    
     // Доступные реакции
     const availableReactions = ['❤️', '😭', '🔥', '👎', '🎉'];
     
@@ -1028,6 +1069,104 @@
     
     let onlineListeners = new Map();
     
+    // === ФУНКЦИИ ДЛЯ ИНДИКАТОРА ПЕЧАТИ ===
+    
+    function sendTypingStatus(isTyping) {
+        if (!currentUser || !currentChatWith) return;
+        
+        const chatId = getChatId(currentUser.nickname, currentChatWith);
+        const typingRef = database.ref(`typing/${chatId}/${currentUser.nickname}`);
+        
+        if (isTyping) {
+            typingRef.set({
+                isTyping: true,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        } else {
+            typingRef.remove();
+        }
+    }
+    
+    function startTypingIndicator() {
+        if (!currentChatWith) return;
+        
+        if (!isTypingCurrently) {
+            isTypingCurrently = true;
+            sendTypingStatus(true);
+        }
+        
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            if (isTypingCurrently) {
+                isTypingCurrently = false;
+                sendTypingStatus(false);
+            }
+        }, 2000);
+    }
+    
+    function stopTypingIndicator() {
+        if (typingTimeout) clearTimeout(typingTimeout);
+        if (isTypingCurrently) {
+            isTypingCurrently = false;
+            sendTypingStatus(false);
+        }
+    }
+    
+    function setupTypingListener() {
+        if (!currentUser || !currentChatWith) return;
+        
+        if (typingListenerRef) {
+            typingListenerRef.off('value');
+        }
+        
+        const chatId = getChatId(currentUser.nickname, currentChatWith);
+        const typingRef = database.ref(`typing/${chatId}`);
+        
+        typingListenerRef = typingRef.on('value', (snapshot) => {
+            const typingData = snapshot.val();
+            let isOtherTyping = false;
+            let typingUserName = '';
+            
+            if (typingData) {
+                for (const [user, data] of Object.entries(typingData)) {
+                    if (user !== currentUser.nickname && data.isTyping === true) {
+                        const now = Date.now();
+                        const timestamp = data.timestamp || 0;
+                        if (now - timestamp < 5000) {
+                            isOtherTyping = true;
+                            typingUserName = user;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            updateTypingIndicatorUI(isOtherTyping, typingUserName);
+        });
+    }
+    
+    function updateTypingIndicatorUI(isTyping, userName) {
+        const headerDiv = document.getElementById('chatHeaderPlaceholder');
+        if (!headerDiv) return;
+        
+        let existingTypingSpan = headerDiv.querySelector('.typing-indicator-status');
+        
+        if (isTyping && userName) {
+            if (!existingTypingSpan) {
+                existingTypingSpan = document.createElement('div');
+                existingTypingSpan.className = 'typing-indicator-status';
+                const userInfoDiv = headerDiv.querySelector('.chat-header-user');
+                if (userInfoDiv) {
+                    userInfoDiv.appendChild(existingTypingSpan);
+                }
+            }
+            existingTypingSpan.innerHTML = `<span>✍️ ${escapeHtml(userName)} печатает</span><div class="typing-dots"><span>.</span><span>.</span><span>.</span></div>`;
+            existingTypingSpan.style.display = 'inline-flex';
+        } else if (existingTypingSpan) {
+            existingTypingSpan.style.display = 'none';
+        }
+    }
+    
     // === ФУНКЦИИ ДЛЯ РЕАКЦИЙ ===
     async function addReactionToMessage(messageId, chatId, emoji) {
         if (!currentUser) return;
@@ -1040,11 +1179,9 @@
                 
                 const userReactionKey = currentUser.nickname;
                 
-                // Если пользователь уже поставил эту реакцию - убираем её
                 if (currentReactions[userReactionKey] === emoji) {
                     delete currentReactions[userReactionKey];
                 } else {
-                    // Иначе ставим новую реакцию (заменяем старую)
                     currentReactions[userReactionKey] = emoji;
                 }
                 
@@ -1063,7 +1200,6 @@
         
         if (!reactions || Object.keys(reactions).length === 0) return;
         
-        // Подсчитываем количество каждой реакции
         const reactionCounts = {};
         const userReaction = {};
         
@@ -1285,7 +1421,6 @@
     }
     
     function showReactionPicker(messageDiv, messageData) {
-        // Удаляем существующую панель, если есть
         const existingPicker = messageDiv.querySelector('.reactions-picker');
         if (existingPicker) {
             existingPicker.remove();
@@ -1310,7 +1445,6 @@
         
         messageDiv.appendChild(picker);
         
-        // Закрыть панель при клике вне
         const closePicker = (e) => {
             if (!picker.contains(e.target)) {
                 picker.remove();
@@ -1671,6 +1805,10 @@
         onlineListeners.clear();
         detachMessagesListener();
         detachChatsListener();
+        if (typingListenerRef) {
+            typingListenerRef.off('value');
+            typingListenerRef = null;
+        }
         localStorage.removeItem('svpUser');
         localStorage.removeItem('svpPasswordHash');
         currentUser = null;
@@ -1774,6 +1912,10 @@
     function clearChatDisplay() {
         currentChatWith = null;
         detachMessagesListener();
+        if (typingListenerRef) {
+            typingListenerRef.off('value');
+            typingListenerRef = null;
+        }
         messagesContainer.innerHTML = '';
         messageElementsMap.clear();
         messagesContainer.style.display = 'none';
@@ -1853,7 +1995,6 @@
         content += `<div class="message-time">${msg.time}</div>`;
         messageDiv.innerHTML = content;
         
-        // Загружаем реакции
         const chatId = getChatId(currentUser.nickname, currentChatWith);
         const reactionsSnapshot = await database.ref(`messageReactions/${chatId}/${msgKey}`).once('value');
         const reactions = reactionsSnapshot.val();
@@ -1871,7 +2012,6 @@
             wrapper.appendChild(contentDiv);
         }
         
-        // Клик по сообщению для вызова панели реакций (только для чужих сообщений)
         if (!isMy) {
             messageDiv.style.cursor = 'pointer';
             messageDiv.onclick = (e) => {
@@ -1881,7 +2021,6 @@
             makeMessageSwipeable(messageDiv, { messageId: msgKey, sender: msg.sender, text: msg.text, type: msg.type });
         }
         
-        // Вставка в правильном порядке
         let inserted = false;
         const existing = messagesContainer.querySelectorAll('.message-wrapper');
         for (let i = 0; i < existing.length; i++) {
@@ -1895,7 +2034,6 @@
         if (!inserted) messagesContainer.appendChild(wrapper);
         messageElementsMap.set(msgKey, wrapper);
         
-        // Подписываемся на обновления реакций
         const reactionsRef = database.ref(`messageReactions/${chatId}/${msgKey}`);
         reactionsRef.on('value', (snapshot) => {
             const newReactions = snapshot.val();
@@ -1916,6 +2054,7 @@
         const text = messageInput.value.trim();
         if (text === '' && !currentReplyTo) return;
         
+        stopTypingIndicator();
         updateActivity();
         
         const chatId = getChatId(currentUser.nickname, currentChatWith);
@@ -2073,6 +2212,7 @@
         
         database.ref('userChats/' + currentUser.nickname + '/' + otherUser + '/unread').set(0);
         loadMessages(otherUser);
+        setupTypingListener();
         switchTab('chat');
     }
     
@@ -2120,7 +2260,17 @@
     
     // Привязка обработчиков
     if (sendBtn) sendBtn.onclick = sendMessage;
-    if (messageInput) messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    if (messageInput) {
+        messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+        messageInput.oninput = function() {
+            if (this.value.trim() !== '') {
+                startTypingIndicator();
+            } else {
+                stopTypingIndicator();
+            }
+        };
+        messageInput.onblur = function() { stopTypingIndicator(); };
+    }
     if (imageUploadBtn) imageUploadBtn.onclick = sendImage;
     if (changePasswordBtn) changePasswordBtn.onclick = changePassword;
     if (changeNicknameBtn) changeNicknameBtn.onclick = changeNickname;
@@ -2206,7 +2356,7 @@
     window.deleteChat = deleteChat;
     window.showFullscreenImage = showFullscreenImage;
     
-    console.log('✅ Обновлённый интерфейс с РЕАКЦИЯМИ! Доступные реакции: ❤️ 😭 🔥 👎 🎉');
+    console.log('✅ Индикатор печати работает! Когда пользователь печатает, собеседник видит уведомление. Данные сохраняются в Firebase по пути: typing/{chatId}/{userId}');
 </script>
 </body>
 </html>
